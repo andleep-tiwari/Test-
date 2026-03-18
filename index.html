@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MACT Judgment Generator — Gujarat</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+:root{--navy:#1a3c5e;--gold:#c8a45a;--gold-light:#f5ecd4;--cream:#faf8f2;--text:#2c2c2c;--text-light:#666;--border:#d4c8a8;--success:#2d7a4f;--danger:#b22234;--input-bg:#fffff5}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh}
+.header{background:linear-gradient(135deg,var(--navy) 0%,#234e78 50%,#1a3c5e 100%);padding:16px 24px;color:#fff;border-bottom:4px solid var(--gold);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.15)}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header-left{display:flex;align-items:center;gap:14px}
+.logo{width:46px;height:46px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--navy);flex-shrink:0}
+.header h1{font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:700;letter-spacing:.5px}
+.header-sub{font-size:11px;opacity:.8;margin-top:1px}
+.header-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-ct{padding:8px 18px;border-radius:6px;border:2px solid var(--gold);background:transparent;color:var(--gold);font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-ct.active{background:var(--gold);color:var(--navy)}
+.btn-s{padding:7px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-s:hover{background:rgba(255,255,255,.2)}
+.main{max-width:1100px;margin:0 auto;padding:24px 16px;display:flex;gap:24px}
+.sidebar{width:240px;flex-shrink:0;position:sticky;top:90px;height:fit-content}
+.step-list{list-style:none}
+.step-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;margin-bottom:2px;border-radius:8px;cursor:pointer;transition:all .2s;position:relative}
+.step-item:hover{background:rgba(26,60,94,.05)}
+.step-item.active{background:var(--gold-light)}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;border:2px solid #ccc;color:#ccc;transition:all .2s}
+.step-item.active .step-num{border-color:var(--navy);color:#fff;background:var(--navy)}
+.step-item.done .step-num{border-color:var(--success);color:#fff;background:var(--success)}
+.step-label{font-size:13px;font-weight:500;color:var(--text-light);line-height:1.3;padding-top:3px}
+.step-item.active .step-label{color:var(--navy);font-weight:700}
+.step-item.done .step-label{color:var(--success)}
+.step-line{position:absolute;left:27px;top:40px;bottom:-12px;width:2px;background:#e0d8c4}
+.step-item:last-child .step-line{display:none}
+.content{flex:1;min-width:0}
+.panel-header{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:20px;border:1px solid var(--border);border-left:4px solid var(--gold)}
+.panel-header h2{font-family:'EB Garamond',Georgia,serif;font-size:22px;color:var(--navy);font-weight:700}
+.panel-header p{font-size:13px;color:var(--text-light);margin-top:4px}
+.form-card{background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:16px;border:1px solid var(--border)}
+.form-card h3{font-family:'EB Garamond',Georgia,serif;font-size:16px;color:var(--navy);font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;letter-spacing:.3px}
+.field label .req{color:var(--danger)}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:'EB Garamond',Georgia,serif;background:var(--input-bg);color:var(--text);transition:border-color .2s,box-shadow .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,60,94,.1)}
+.field textarea{min-height:100px;resize:vertical;line-height:1.6}
+.field .hint{font-size:11px;color:#999;margin-top:2px;font-style:italic}
+.row{display:grid;gap:14px}.row-2{grid-template-columns:1fr 1fr}.row-3{grid-template-columns:1fr 1fr 1fr}
+.info-box{background:var(--gold-light);border:1px solid #e0c860;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#6b5a1e}
+.info-box strong{color:#4a3d0f}
+.list-item{background:var(--cream);padding:14px;border-radius:8px;margin-bottom:8px;border:1px solid #e8e0d0;position:relative}
+.list-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.list-item-header strong{color:var(--navy);font-size:14px}
+.btn-remove{background:var(--danger);color:#fff;border:none;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer}
+.btn-add{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:8px;transition:background .2s}
+.btn-add:hover{background:#234e78}
+.ev-row{display:grid;grid-template-columns:40px 1fr 100px 36px;gap:6px;align-items:center;margin-bottom:4px}
+.ev-row span{font-size:13px;color:#666;text-align:center}
+.ev-row input{padding:6px 8px;font-size:13px}
+.ev-row button{background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:14px;padding:4px}
+.comp-table{width:100%;border-collapse:collapse;font-size:14px;font-family:'EB Garamond',Georgia,serif}
+.comp-table td{padding:8px 12px;border-bottom:1px solid #eee}
+.comp-table tr.hl{background:#f0f7f0;font-weight:700}
+.comp-table tr.sub{background:#f9f6ee}
+.comp-table .amt{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.comp-table tr.total{background:var(--navy);color:#fff;font-weight:700;font-size:16px}
+.comp-table tr.total td{padding:12px}
+.comp-ref{background:#f0f5ff;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--navy)}
+.comp-ref strong{font-weight:700}
+.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.btn-nav{padding:11px 28px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-prev{background:#e8e0d0;color:var(--navy)}.btn-prev:hover{background:#d8d0c0}
+.btn-next{background:var(--gold);color:var(--navy);font-weight:700}.btn-next:hover{background:#b89448}
+.btn-prev:disabled,.btn-next:disabled{opacity:.4;cursor:default}
+.preview-box{background:#fff;border:1px solid #ccc;border-radius:10px;padding:50px 65px;max-height:70vh;overflow:auto;line-height:1.8;font-family:'EB Garamond',Georgia,serif;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.preview-box h2{text-align:center;margin:10px 0 4px}.preview-box h3{text-align:center;margin:0 0 12px}
+.preview-box table{width:100%;border-collapse:collapse;margin:12px 0}
+.preview-box td,.preview-box th{border:1px solid #333;padding:6px 10px;font-size:13px;vertical-align:top}
+.preview-box th{background:#f0f0f0;font-weight:700;text-align:left}
+.preview-box blockquote{margin:8px 40px}
+.export-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn-export{padding:10px 22px;border-radius:8px;border:2px solid var(--navy);background:var(--navy);color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-export:hover{background:#234e78}
+.btn-export.sec{background:transparent;color:var(--navy)}
+.draft-notice{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.draft-notice .btn-load{background:var(--success);color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap}
+.draft-notice .btn-discard{background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:11px;white-space:nowrap}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.ref-table th{background:var(--navy);color:#fff;padding:6px 12px;text-align:center}
+.ref-table td{padding:5px 12px;text-align:center;border:1px solid #ddd}
+.ref-table tr.ar{background:#fff8c0;font-weight:700}
+.ref-table tr:nth-child(even){background:#f9f6ee}
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--navy);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(100px);opacity:0;transition:all .3s ease}
+.toast.show{transform:translateY(0);opacity:1}
+/* Header table in preview - right aligned compact */
+.hdr-tbl{width:auto!important;margin-left:auto;margin-right:0;font-size:12px}
+.hdr-tbl td{padding:3px 8px;border:1px solid #999;white-space:nowrap}
+@media(max-width:768px){.main{flex-direction:column}.sidebar{width:100%;position:static}.step-list{display:flex;overflow-x:auto;gap:4px;padding-bottom:8px}.step-item{flex-direction:column;align-items:center;min-width:70px;padding:8px}.step-line{display:none!important}.step-label{font-size:10px;text-align:center}.row-2,.row-3{grid-template-columns:1fr}.preview-box{padding:20px}}
+@media print{.header,.sidebar,.nav-bar,.export-bar,.draft-notice{display:none!important}.main{display:block;padding:0}.content{width:100%}.preview-box{max-height:none;border:none;box-shadow:none;padding:0}}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner">
+<div class="header-left"><div class="logo">⚖</div><div><h1>MACT Judgment Generator</h1><div class="header-sub">Motor Accident Claims Tribunal — Gujarat</div></div></div>
+<div class="header-controls">
+<button class="btn-ct active" onclick="setCaseType('fatal')" id="bf">FATAL</button>
+<button class="btn-ct" onclick="setCaseType('injury')" id="bi">INJURY</button>
+<button class="btn-s" onclick="saveDraft()">💾 Save Draft</button>
+<button class="btn-s" onclick="clearDraft()">🗑️ Clear</button>
+</div></div></div>
+<div class="main">
+<div class="sidebar"><ul class="step-list" id="sL"></ul></div>
+<div class="content" id="cA">
+<div class="draft-notice" id="dN" style="display:none"><span></span><div style="display:flex;gap:6px"><button class="btn-load" onclick="loadDraft()">Resume</button><button class="btn-discard" onclick="discardDraft()">Discard</button></div></div>
+<div id="sC"></div>
+<div class="nav-bar"><button class="btn-nav btn-prev" id="bP" onclick="prevStep()">← Previous</button><span id="sI" style="font-size:13px;color:#999"></span><button class="btn-nav btn-next" id="bN" onclick="nextStep()">Next →</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ DATA MODEL ═══
+let D={
+caseType:"fatal",
+court:{name:"",place:"",petNo:"",year:"",filedOn:"",regOn:"",decidedOn:"",section:"166",claimedAmt:"",judgeName:"",judgeDesg:"Judge, Motor Accident Claims Tribunal",judgePlace:"",uniqueId:""},
+victim:{name:"",age:"",gender:"Male",occ:"",marital:"married"},
+accident:{date:"",time:"",place:"",desc:"",firNo:"",firPS:"",firDate:"",firSections:"279, 337, 304(A)",vehNo:"",vehType:""},
+applicants:[{name:"",age:"",occ:"",relation:"",address:"",isMinor:false,guardian:""}],
+opponents:[{name:"",role:"Driver",address:"",ageDesc:"Adult",occ:"Driving"},{name:"",role:"Owner",address:"",ageDesc:"Adult",occ:""},{name:"",role:"Insurance Company",address:"",ageDesc:"",occ:""}],
+appearances:{applicantAdv:"",opponentAdv:"",absentees:""},
+appOralEv:[{desc:"",exh:""}],appDocEv:[{desc:"",exh:""}],oppOralEv:[],oppDocEv:[],
+narrative:{petCase:"",defence:"",trialEvents:"",negligence:"",closingPursis:""},
+income:{type:"notional",empType:"SELF_EMPLOYED",itrYear:"",itrAmt:"",itr2Year:"",itr2Amt:"",salary:"",notional:""},
+fatal:{dependents:"3",spCons:"0",parCons:"0",filCons:"0",medExp:"0"},
+injury:{disability:"0",bedRest:"2",pain:"10000",attendant:"5000",transport:"0",medExp:"0",medExh:""},
+interestRate:"7.5"
+};
+
+// ═══ SARLA VERMA / PRANAY SETHI ═══
+const MT=[{mn:0,mx:15,m:15,l:"Upto 15"},{mn:16,mx:20,m:18,l:"16 to 20"},{mn:21,mx:25,m:18,l:"21 to 25"},{mn:26,mx:30,m:17,l:"26 to 30"},{mn:31,mx:35,m:16,l:"31 to 35"},{mn:36,mx:40,m:15,l:"36 to 40"},{mn:41,mx:45,m:14,l:"41 to 45"},{mn:46,mx:50,m:13,l:"46 to 50"},{mn:51,mx:55,m:11,l:"51 to 55"},{mn:56,mx:60,m:9,l:"56 to 60"},{mn:61,mx:65,m:7,l:"61 to 65"},{mn:66,mx:200,m:5,l:"66 to 70"}];
+function getM(a){const r=MT.find(x=>a>=x.mn&&a<=x.mx);return r?r.m:5;}
+function getAG(a){const r=MT.find(x=>a>=x.mn&&a<=x.mx);return r?r.l:"66 to 70";}
+function getFP(a,e){if(e==="PERMANENT"){if(a<40)return 50;if(a<=50)return 30;if(a<=60)return 15;}else{if(a<40)return 40;if(a<=50)return 25;if(a<=60)return 10;}return 0;}
+function getPD(ai,d,ms){if(ms==="unmarried")return{f:"1/2",a:Math.round(ai/2)};d=parseInt(d)||3;if(d<=2)return{f:"1/3",a:Math.round(ai/3)};if(d<=5)return{f:"1/4",a:Math.round(ai/4)};return{f:"1/5",a:Math.round(ai/5)};}
+// Conventional heads: 10% every 3 yrs from 2017, applicable on YEAR OF DECISION
+function getCH(decYr){const y=parseInt(decYr)||2025;const p=Math.max(0,Math.floor((y-2017)/3));const m=1+p*0.1;return{le:Math.round(15000*m),cp:Math.round(40000*m),fe:Math.round(15000*m),pct:Math.round((m-1)*100)};}
+function extractYr(s){if(!s)return 2025;const p=s.split(/[/.\-]/);const l=parseInt(p[p.length-1]);return l>1900?l:2025;}
+function fI(n){return Math.round(n).toLocaleString('en-IN');}
+function nW(n){if(!n)return"Zero";n=Math.round(n);const o=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];const t=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];const t2=x=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?" "+o[x%10]:"");let r="";const cr=Math.floor(n/10000000);n%=10000000;const lk=Math.floor(n/100000);n%=100000;const th=Math.floor(n/1000);n%=1000;const h=Math.floor(n/100);const rm=n%100;if(cr)r+=t2(cr)+" Crore ";if(lk)r+=t2(lk)+" Lakh ";if(th)r+=t2(th)+" Thousand ";if(h)r+=o[h]+" Hundred ";if(rm)r+=t2(rm);return r.trim();}
+
+function compute(){
+const age=parseInt(D.victim.age)||30,mul=getM(age),fp=getFP(age,D.income.empType);
+let ai=0,mi=0;
+if(D.income.type==="itr"){ai=parseFloat(D.income.itrAmt)||0;mi=Math.round(ai/12);}
+else if(D.income.type==="itr_avg"){ai=Math.round(((parseFloat(D.income.itrAmt)||0)+(parseFloat(D.income.itr2Amt)||0))/2);mi=Math.round(ai/12);}
+else if(D.income.type==="salary"){mi=parseFloat(D.income.salary)||0;ai=mi*12;}
+else{mi=parseFloat(D.income.notional)||0;ai=mi*12;}
+const fpa=Math.round(ai*fp/100),awfp=ai+fpa,mwfp=Math.round(awfp/12);
+const decYr=extractYr(D.court.decidedOn);
+const ch=getCH(decYr);
+if(D.caseType==="fatal"){
+const pd=getPD(awfp,D.fatal.dependents,D.victim.marital),nd=awfp-pd.a,lod=nd*mul;
+const spC=parseInt(D.fatal.spCons)||0,parC=parseInt(D.fatal.parCons)||0,filC=parseInt(D.fatal.filCons)||0;
+const totCP=spC+parC+filC,con=ch.cp*totCP,med=parseFloat(D.fatal.medExp)||0;
+const tot=lod+ch.le+ch.fe+con+med;
+return{type:"fatal",age,mul,ag:getAG(age),mi,ai,fp,fpa,mwfp,awfp,df:pd.f,da:pd.a,nd,lod,le:ch.le,fe:ch.fe,con,cpp:ch.cp,spC,parC,filC,totCP,med,cap:ch.pct,decYr,tot,tw:nW(tot)};
+}else{
+const dis=parseFloat(D.injury.disability)||0,ale=Math.round(awfp*dis/100),fil=ale*mul;
+const ps=parseFloat(D.injury.pain)||0,at=parseFloat(D.injury.attendant)||0,tc=parseFloat(D.injury.transport)||0;
+const med=parseFloat(D.injury.medExp)||0,br=parseInt(D.injury.bedRest)||0,ali=Math.round(mi*br);
+const tot=fil+ps+at+tc+med+ali;
+return{type:"injury",age,mul,ag:getAG(age),mi,ai,fp,fpa,mwfp,awfp,dis,ale,fil,ps,at,tc,med,br,ali,tot,tw:nW(tot)};
+}}
+
+// ═══ STEPS ═══
+const STEPS=[{id:"case",l:"Case Details",ic:"📋"},{id:"parties",l:"Parties",ic:"👥"},{id:"accident",l:"Accident & FIR",ic:"🚗"},{id:"evidence",l:"Evidence",ic:"📄"},{id:"narrative",l:"Narrative",ic:"✍️"},{id:"income",l:"Income & FP",ic:"💰"},{id:"compensation",l:"Compensation",ic:"🧮"},{id:"preview",l:"Preview & Export",ic:"📝"}];
+let cS=0;
+function setCaseType(t){D.caseType=t;document.getElementById('bf').classList.toggle('active',t==='fatal');document.getElementById('bi').classList.toggle('active',t==='injury');renderStep();}
+function renderSB(){const ul=document.getElementById('sL');ul.innerHTML=STEPS.map((s,i)=>`<li class="step-item ${i===cS?'active':''} ${i<cS?'done':''}" onclick="goTo(${i})"><div class="step-num">${i<cS?'✓':i+1}</div><div class="step-label">${s.ic} ${s.l}</div><div class="step-line"></div></li>`).join('');document.getElementById('sI').textContent=`Step ${cS+1} of ${STEPS.length}`;document.getElementById('bP').disabled=cS===0;document.getElementById('bN').textContent=cS===STEPS.length-1?'✓ Finish':'Next →';}
+function goTo(i){cS=i;renderSB();renderStep();window.scrollTo({top:200,behavior:'smooth'});}
+function nextStep(){if(cS<STEPS.length-1)goTo(cS+1);}
+function prevStep(){if(cS>0)goTo(cS-1);}
+
+// ═══ FIELD HELPERS ═══
+function gV(p){return p.split('.').reduce((o,k)=>o&&o[k],D)||'';}
+function sV(p,v){const k=p.split('.');let o=D;for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=v;}
+function F(l,p,opts={}){const v=gV(p),t=opts.type||"text",h=opts.hint?`<div class="hint">${opts.hint}</div>`:'',rq=opts.required?'<span class="req">*</span>':'';
+if(t==="textarea")return`<div class="field"><label>${l} ${rq}</label><textarea oninput="sV('${p}',this.value)" placeholder="${opts.placeholder||''}">${v||''}</textarea>${h}</div>`;
+if(t==="select"){const os=opts.options.map(o=>{const[vv,ll]=Array.isArray(o)?o:[o,o];return`<option value="${vv}" ${v===vv?'selected':''}>${ll}</option>`;}).join('');return`<div class="field"><label>${l} ${rq}</label><select onchange="sV('${p}',this.value);renderStep();">${os}</select>${h}</div>`;}
+return`<div class="field"><label>${l} ${rq}</label><input type="${t}" value="${v||''}" oninput="sV('${p}',this.value)" placeholder="${opts.placeholder||''}" ${opts.step?'step="'+opts.step+'"':''}>${h}</div>`;}
+
+function renderStep(){const c=document.getElementById('sC');const R={case:rCase,parties:rParties,accident:rAccident,evidence:rEvidence,narrative:rNarrative,income:rIncome,compensation:rComp,preview:rPreview};c.innerHTML=R[STEPS[cS].id]();}
+
+// ═══ STEP RENDERERS ═══
+function rCase(){return`<div class="panel-header"><h2>📋 Case Details</h2><p>Court information, petition number, dates, judge details</p></div>
+<div class="form-card"><h3>Court Information</h3>${F("Court Name","court.name",{placeholder:"e.g. IN THE MOTOR ACCIDENT CLAIMS TRIBUNAL"})}${F("Court Place","court.place",{placeholder:"e.g. KACHCHH AT BHACHAU"})}<div class="row row-2">${F("MAC Petition No.","court.petNo",{required:true,placeholder:"267"})}${F("Year","court.year",{required:true,placeholder:"2020"})}</div></div>
+<div class="form-card"><h3>Dates</h3><div class="row row-3">${F("Filed On","court.filedOn",{required:true,hint:"DD.MM.YYYY",placeholder:"13.04.2016"})}${F("Registered On","court.regOn",{placeholder:"Same as Filed On"})}${F("Decided On","court.decidedOn",{required:true,hint:"DD.MM.YYYY — Conventional heads computed on this year",placeholder:"31.12.2025"})}</div><div class="row row-2">${F("Section","court.section",{type:"select",options:[["166","Section 166"],["163-A","Section 163-A"]]})}${F("Claimed Amount (Rs.)","court.claimedAmt",{type:"number"})}</div></div>
+<div class="form-card"><h3>Judge Details</h3><div class="row row-2">${F("Judge Name","court.judgeName")}${F("Designation","court.judgeDesg")}</div><div class="row row-2">${F("Place","court.judgePlace",{placeholder:"Bhachau"})}${F("Unique ID Code","court.uniqueId",{placeholder:"GJ01587"})}</div></div>`;}
+
+function rParties(){const vl=D.caseType==="fatal"?"Deceased":"Injured Person";
+let h=`<div class="panel-header"><h2>👥 Parties</h2><p>Details of ${vl.toLowerCase()}, applicants, opponents, advocates</p></div>
+<div class="form-card"><h3>${vl} Details</h3><div class="row row-2">${F("Name","victim.name",{required:true})}${F("Age at Accident","victim.age",{required:true,type:"number"})}</div><div class="row row-3">${F("Gender","victim.gender",{type:"select",options:["Male","Female"]})}${F("Occupation","victim.occ")}${F("Marital Status","victim.marital",{type:"select",options:[["married","Married"],["unmarried","Unmarried"]]})}</div>${D.victim.marital==="unmarried"?'<div class="info-box">Per <strong>Sarla Verma (Para 30)</strong>: Unmarried → <strong>1/2 deduction</strong> straightaway.</div>':''}</div>`;
+h+=`<div class="form-card"><h3>Applicants</h3>`;
+D.applicants.forEach((a,i)=>{h+=`<div class="list-item"><div class="list-item-header"><strong>Applicant ${i+1}</strong>${i>0?`<button class="btn-remove" onclick="D.applicants.splice(${i},1);renderStep()">Remove</button>`:''}</div><div class="row row-3">${F("Name",`applicants.${i}.name`,{required:true})}${F("Age",`applicants.${i}.age`,{type:"number"})}${F("Occupation",`applicants.${i}.occ`)}</div><div class="row row-2">${F("Relation",`applicants.${i}.relation`,{placeholder:"Wife, Son, Father"})}${F("Address",`applicants.${i}.address`)}</div></div>`;});
+h+=`<button class="btn-add" onclick="D.applicants.push({name:'',age:'',occ:'',relation:'',address:'',isMinor:false,guardian:''});renderStep()">+ Add Applicant</button></div>`;
+h+=`<div class="form-card"><h3>Opponents</h3>`;
+D.opponents.forEach((o,i)=>{h+=`<div class="list-item"><div class="list-item-header"><strong>Opponent ${i+1}</strong>${i>0?`<button class="btn-remove" onclick="D.opponents.splice(${i},1);renderStep()">Remove</button>`:''}</div><div class="row row-2">${F("Name",`opponents.${i}.name`)}${F("Role",`opponents.${i}.role`,{type:"select",options:["Driver","Owner","Insurance Company","Driver-cum-Owner"]})}</div><div class="row row-2">${F("Address",`opponents.${i}.address`)}${F("Occupation",`opponents.${i}.occ`)}</div></div>`;});
+h+=`<button class="btn-add" onclick="D.opponents.push({name:'',role:'Driver',address:'',ageDesc:'Adult',occ:''});renderStep()">+ Add Opponent</button></div>`;
+h+=`<div class="form-card"><h3>Appearances</h3>${F("Advocate for Applicants","appearances.applicantAdv",{placeholder:"Ld. Ad. Mr. ___ for the Applicants"})}${F("Advocate for Opponents","appearances.opponentAdv",{placeholder:"Ld. Adv. Mr. ___ for Opp No.3"})}${F("Absent Parties","appearances.absentees",{placeholder:"None appeared for Opp. No. 1 & 2"})}</div>`;
+return h;}
+
+function rAccident(){return`<div class="panel-header"><h2>🚗 Accident & FIR</h2><p>Accident details and police records</p></div>
+<div class="form-card"><h3>Accident Information</h3><div class="row row-3">${F("Date of Accident","accident.date",{required:true,hint:"DD/MM/YYYY",placeholder:"03/11/2015"})}${F("Time","accident.time",{placeholder:"09:00 hours"})}${F("Vehicle No.","accident.vehNo",{required:true})}</div><div class="row row-2">${F("Vehicle Type","accident.vehType",{placeholder:"Truck, Car, Tanker"})}${F("Place of Accident","accident.place")}</div>${F("Brief Description","accident.desc",{type:"textarea",placeholder:"Describe how the accident occurred..."})}</div>
+<div class="form-card"><h3>FIR / Police Records</h3><div class="row row-3">${F("FIR / Crime No.","accident.firNo")}${F("Police Station","accident.firPS")}${F("FIR Date","accident.firDate")}</div>${F("Sections","accident.firSections")}</div>`;}
+
+function rEvidence(){let h=`<div class="panel-header"><h2>📄 Evidence</h2><p>Oral and documentary evidence of both sides</p></div>`;
+const evBlock=(title,arr,key)=>{let s=`<div class="form-card"><h3>${title}</h3>`;
+if(arr.length===0)s+=`<div class="info-box">NIL</div>`;
+arr.forEach((e,i)=>{s+=`<div class="ev-row"><span>${i+1}.</span><input value="${e.desc||''}" oninput="D.${key}[${i}].desc=this.value" placeholder="Description"><input value="${e.exh||''}" oninput="D.${key}[${i}].exh=this.value" placeholder="Ex. No."><button onclick="D.${key}.splice(${i},1);renderStep()">✕</button></div>`;});
+s+=`<button class="btn-add" onclick="D.${key}.push({desc:'',exh:''});renderStep()" style="margin-top:6px;padding:5px 14px;font-size:12px">+ Add</button></div>`;return s;};
+h+=evBlock("Applicant's Oral Evidence",D.appOralEv,"appOralEv");
+h+=evBlock("Applicant's Documentary Evidence",D.appDocEv,"appDocEv");
+h+=evBlock("Opponent's Evidence",D.oppDocEv,"oppDocEv");
+return h;}
+
+function rNarrative(){return`<div class="panel-header"><h2>✍️ Narrative Sections</h2><p>Case-specific narrative for each section of the judgment</p></div>
+<div class="form-card"><h3>Case of Petitioner (Section 2)</h3>${F("Brief facts as stated in claim petition","narrative.petCase",{type:"textarea"})}</div>
+<div class="form-card"><h3>Defence of Opponents (Section 3)</h3>${F("Summary of written statement and contentions","narrative.defence",{type:"textarea"})}</div>
+<div class="form-card"><h3>Events During Trial (Section 4)</h3>${F("S.170 applications, procedural events","narrative.trialEvents",{type:"textarea"})}</div>
+<div class="form-card"><h3>Discussion on Negligence — Issue No.1 (Section 9)</h3>
+<div class="info-box"><strong>Note:</strong> The standard legal paragraphs on scope of MACP proceedings (Bimla Devi, Parmeshwari Devi, Prabhavathi) will be <strong>auto-included</strong> before your case-specific discussion.</div>
+${F("Your case-specific reasoning on negligence, vehicle involvement, cause of death/injury","narrative.negligence",{type:"textarea",hint:"Write only your case-specific analysis. Standard legal position paragraphs are auto-generated."})}</div>
+<div class="form-card"><h3>Closing Pursis</h3>${F("Closing pursis details","narrative.closingPursis",{type:"textarea"})}</div>`;}
+
+function rIncome(){let h=`<div class="panel-header"><h2>💰 Income & Future Prospects</h2><p>Income assessment and Pranay Sethi future prospects</p></div>
+<div class="form-card"><h3>Income Assessment</h3><div class="row row-2">${F("Income Proof Type","income.type",{type:"select",options:[["itr","ITR (Single Year)"],["itr_avg","Average of 2 ITRs"],["salary","Salary Slip / Certificate"],["notional","Notional Income"]]})}${F("Employment Type","income.empType",{type:"select",options:[["PERMANENT","Permanent Job (Govt/Private)"],["SELF_EMPLOYED","Self-Employed / Fixed Salary"]],hint:"Pranay Sethi: Permanent=50/30/15%, Self-Employed=40/25/10%"})}</div>`;
+if(D.income.type==="itr")h+=`<div class="row row-2">${F("ITR Year","income.itrYear",{placeholder:"AY 2018-19"})}${F("Annual Income (Rs.)","income.itrAmt",{type:"number",required:true})}</div>`;
+else if(D.income.type==="itr_avg")h+=`<div class="row row-2">${F("ITR 1 Year","income.itrYear")}${F("ITR 1 Amount (Rs.)","income.itrAmt",{type:"number"})}</div><div class="row row-2">${F("ITR 2 Year","income.itr2Year")}${F("ITR 2 Amount (Rs.)","income.itr2Amt",{type:"number"})}</div>`;
+else if(D.income.type==="salary")h+=F("Monthly Salary (Rs.)","income.salary",{type:"number",required:true});
+else h+=F("Notional Monthly Income (Rs.)","income.notional",{type:"number",required:true,hint:"As assessed by Tribunal"});
+h+=`</div>`;
+if(D.caseType==="fatal"){
+h+=`<div class="form-card"><h3>Fatal — Dependency & Consortium</h3>`;
+if(D.victim.marital==="married")h+=F("No. of Dependents","fatal.dependents",{type:"number",required:true,hint:"Sarla Verma: ≤2→1/3, 3-5→1/4, 6+→1/5"});
+else h+=`<div class="info-box"><strong>Unmarried</strong> → 1/2 deduction automatic</div>`;
+h+=`<div class="info-box">Consortium: @ <strong>Rs.${fI(getCH(extractYr(D.court.decidedOn)).cp)}</strong> per person (Base ₹40,000 + ${getCH(extractYr(D.court.decidedOn)).pct}% appreciation, Year of Decision: ${extractYr(D.court.decidedOn)})</div>`;
+h+=`<div class="row row-3">${F("Spousal Consortium (persons)","fatal.spCons",{type:"number",hint:"Surviving spouse — 0 or 1"})}${F("Parental Consortium (persons)","fatal.parCons",{type:"number",hint:"Children who lost parent"})}${F("Filial Consortium (persons)","fatal.filCons",{type:"number",hint:"Parents who lost child"})}</div>`;
+h+=F("Medical Expenses (Rs.)","fatal.medExp",{type:"number"});
+h+=`</div>`;
+}else{
+h+=`<div class="form-card"><h3>Injury — Disability & Expenses</h3><div class="row row-2">${F("Disability (% body as whole)","injury.disability",{type:"number",required:true})}${F("Bed Rest (months)","injury.bedRest",{type:"number"})}</div><div class="row row-3">${F("Pain & Suffering (Rs.)","injury.pain",{type:"number"})}${F("Attendant & Diet (Rs.)","injury.attendant",{type:"number"})}${F("Transport (Rs.)","injury.transport",{type:"number"})}</div><div class="row row-2">${F("Medical Expenses (Rs.)","injury.medExp",{type:"number"})}${F("Medical Bills Exhibit","injury.medExh")}</div></div>`;
+}
+h+=`<div class="form-card"><h3>Interest</h3>${F("Interest Rate (% p.a.)","interestRate",{type:"number",step:"0.5"})}</div>`;
+return h;}
+
+function rComp(){const c=compute();
+let h=`<div class="panel-header"><h2>🧮 Auto-Computed Compensation</h2><p>Sarla Verma · Pranay Sethi · Pappu Deo Yadav</p></div>
+<div class="form-card"><div class="comp-ref"><strong>Sarla Verma:</strong> Age ${c.age} → ${c.ag} → <strong>Multiplier = ${c.mul}</strong> &nbsp;|&nbsp; <strong>Pranay Sethi FP:</strong> ${D.income.empType==="PERMANENT"?"Permanent":"Self-Employed"}, ${c.age<40?"Below 40":c.age<=50?"40-50":"50-60"} → <strong>${c.fp}%</strong>${c.type==="fatal"&&c.cap>0?' &nbsp;|&nbsp; <strong>Conventional:</strong> +'+c.cap+'% (Decision Year '+c.decYr+')':''}</div>
+<table class="comp-table"><tbody>`;
+if(c.type==="fatal"){h+=`
+<tr class="sub"><td>Monthly Income</td><td class="amt">₹ ${fI(c.mi)}</td></tr>
+<tr><td>Future Prospects @ ${c.fp}%</td><td class="amt">₹ ${fI(Math.round(c.fpa/12))}</td></tr>
+<tr class="hl"><td>Total Monthly Income</td><td class="amt">₹ ${fI(c.mwfp)}</td></tr>
+<tr><td>Annual Income (${fI(c.mwfp)} × 12)</td><td class="amt">₹ ${fI(c.awfp)}</td></tr>
+<tr><td>Personal Expenses (${c.df})${D.victim.marital==="unmarried"?" — Unmarried":""}</td><td class="amt" style="color:var(--danger)">- ₹ ${fI(c.da)}</td></tr>
+<tr class="hl"><td>Net Annual Dependency</td><td class="amt">₹ ${fI(c.nd)}</td></tr>
+<tr><td>Multiplier (${c.ag})</td><td class="amt">× ${c.mul}</td></tr>
+<tr class="sub"><td><strong>Loss of Dependency</strong></td><td class="amt"><strong>₹ ${fI(c.lod)}</strong></td></tr>
+<tr><td>Loss of Estate${c.cap>0?' (+'+c.cap+'%)':''}</td><td class="amt">₹ ${fI(c.le)}</td></tr>
+<tr><td>Spousal Consortium (${c.spC} × ₹${fI(c.cpp)})</td><td class="amt">₹ ${fI(c.cpp*c.spC)}</td></tr>
+<tr><td>Parental Consortium (${c.parC} × ₹${fI(c.cpp)})</td><td class="amt">₹ ${fI(c.cpp*c.parC)}</td></tr>
+<tr><td>Filial Consortium (${c.filC} × ₹${fI(c.cpp)})</td><td class="amt">₹ ${fI(c.cpp*c.filC)}</td></tr>
+<tr><td>Funeral Expenses${c.cap>0?' (+'+c.cap+'%)':''}</td><td class="amt">₹ ${fI(c.fe)}</td></tr>
+${c.med>0?`<tr><td>Medical Expenses</td><td class="amt">₹ ${fI(c.med)}</td></tr>`:''}`;
+}else{h+=`
+<tr class="sub"><td>Annual Income</td><td class="amt">₹ ${fI(c.ai)}</td></tr>
+<tr><td>Future Prospects @ ${c.fp}%</td><td class="amt">₹ ${fI(c.fpa)}</td></tr>
+<tr class="hl"><td>Annual Income with FP</td><td class="amt">₹ ${fI(c.awfp)}</td></tr>
+<tr><td>Disability ${c.dis}% of ₹${fI(c.awfp)}</td><td class="amt">₹ ${fI(c.ale)}/yr</td></tr>
+<tr><td>Multiplier (${c.ag})</td><td class="amt">× ${c.mul}</td></tr>
+<tr class="sub"><td><strong>Future Loss of Income</strong></td><td class="amt"><strong>₹ ${fI(c.fil)}</strong></td></tr>
+<tr><td>Pain, Shock & Suffering</td><td class="amt">₹ ${fI(c.ps)}</td></tr>
+<tr><td>Attendant, Diet</td><td class="amt">₹ ${fI(c.at)}</td></tr>
+${c.tc>0?`<tr><td>Transport</td><td class="amt">₹ ${fI(c.tc)}</td></tr>`:''}
+<tr><td>Actual Loss (${c.br} mths × ₹${fI(c.mi)})</td><td class="amt">₹ ${fI(c.ali)}</td></tr>
+<tr><td>Medical Expenses</td><td class="amt">₹ ${fI(c.med)}</td></tr>`;}
+h+=`<tr class="total"><td>TOTAL COMPENSATION</td><td class="amt">₹ ${fI(c.tot)}</td></tr></tbody></table>
+<div style="margin-top:10px;font-size:14px;color:var(--navy);font-style:italic;font-family:'EB Garamond',serif">(Rupees ${c.tw} Only)</div></div>`;
+h+=`<div class="form-card"><h3>Sarla Verma Multiplier (Para 42)</h3><table class="ref-table"><thead><tr><th>Age Group</th><th>Multiplier</th></tr></thead><tbody>`;
+MT.forEach(r=>{h+=`<tr class="${c.age>=r.mn&&c.age<=r.mx?'ar':''}"><td>${r.l}</td><td>${r.m}</td></tr>`;});
+h+=`</tbody></table></div>`;return h;}
+
+function rPreview(){const c=compute();
+const pl=D.applicants.length>1?"s":"",isAre=D.applicants.length>1?"are":"is",hh=D.victim.gender==="Female"?"her":"his";
+const dc=D.caseType==="fatal"?"deceased":"claimant",di=D.caseType==="fatal"?"DEATH":"INJURY";
+
+// Negligence standard paragraphs (auto-included)
+const negStd=`<p><b>9.1</b> While deciding the point of negligence, it has to be borne in mind that the negligence is required to be proved in claim petition u/s 166 of the Act only on the touchstone of the preponderance of probability and not beyond doubt. Above referred ratio is laid down by Hon'ble Supreme Court in the cases of <b>Bimla Devi v/s H.R.T.C., reported in AIR 2009 SC 2819</b> and <b>Parmeshwari Devi v/s Amir Chand, reported in 2011 (11) SCC 635.</b></p>
+<p><b>9.2</b> Further, as per <b>Prabhavathi v. Managing Director, Bangalore Metropolitan Transport Corporation, 2025 INSC 293,</b> the standard of proof in motor accident claims is of preponderance of probability and not proof beyond reasonable doubt applicable to criminal proceedings.</p>`;
+
+let j=`
+<!-- Header table: right-aligned compact -->
+<table class="hdr-tbl" style="width:auto;margin-left:auto;margin-right:0;font-size:11px;margin-bottom:12px">
+<tr><td><b>Filed on:</b></td><td>${D.court.filedOn||''}</td></tr>
+<tr><td><b>Registered on:</b></td><td>${D.court.regOn||D.court.filedOn||''}</td></tr>
+<tr><td><b>Decided on:</b></td><td><b>${D.court.decidedOn||''}</b></td></tr>
+</table>
+
+<h2><b>${D.court.name||'[Court Name]'}</b></h2>
+<h3><b><u>${D.court.place||'[Court Place]'}</u></b></h3>
+<h3><b>MAC PETITION NO.${D.court.petNo||'__'}/${D.court.year||'____'}</b></h3>
+
+<table><tbody><tr><td colspan="2"><b><u>Applicants:</u></b></td></tr>
+${D.applicants.map((a,i)=>`<tr><td style="width:40px;text-align:center">${i+1}</td><td><b>${a.name||'[Name]'}</b><br>Age: ${a.age||'__'} Years, Occ: ${a.occ||'__'}${a.relation?', ('+a.relation+')':''}</td></tr>`).join('')}
+${D.applicants[0]?.address?`<tr><td colspan="2"><b>All are Res. At</b> ${D.applicants[0].address}</td></tr>`:''}</tbody></table>
+<h3><b>VERSUS</b></h3>
+<table><tbody><tr><td colspan="2"><b><u>Opponents:</u></b></td></tr>
+${D.opponents.map((o,i)=>`<tr><td style="width:40px;text-align:center">${i+1}</td><td><b>${o.name||'[Name]'}</b><br>Age ${o.ageDesc||'Adult'}, Occ: ${o.occ||'__'}${o.address?'<br>R/o. '+o.address:''}</td></tr>`).join('')}</tbody></table>
+
+<p><b><u>Appearance:</u></b></p>
+<table><tbody><tr><td>${D.appearances.applicantAdv||'[Advocate for Applicants]'}</td></tr><tr><td>${D.appearances.opponentAdv||'[Advocate for Opponents]'}${D.appearances.absentees?'<br>'+D.appearances.absentees:''}</td></tr></tbody></table>
+
+<h2><b><u>-: J U D G M E N T :-</u></b></h2>
+<p><b>1. <u>THE SUBJECT MATTER ::</u></b></p>
+<blockquote>This is Motor Accident Claim Petition filed U/s.${D.court.section} of the Motor Vehicle Act, 1988 (hereinafter referred to as "the Act") by the applicant${pl} to obtain an award of Rs. ${fI(D.court.claimedAmt)}/- as compensation.</blockquote>
+<p><b>2. <u>THE CASE OF PETITIONER ::</u></b></p>
+<blockquote>The accident occurred on ${D.accident.date||'[Date]'}, at about ${D.accident.time||'[Time]'}, at ${D.accident.place||'[Place]'}.</blockquote>
+${D.narrative.petCase?`<p><b>2.1.</b> ${D.narrative.petCase}</p>`:''}
+${D.accident.firNo?`<p><b>2.2</b> In this regard, a complaint was lodged at ${D.accident.firPS}, vide Crime Registered No. ${D.accident.firNo} dated ${D.accident.firDate} under Section ${D.accident.firSections} of the Indian Penal Code against the driver of ${D.accident.vehType} bearing Registration No. ${D.accident.vehNo}.</p>`:''}
+<p><b>3. <u>THE DEFENCE OF OPPONENTS</u></b></p>${D.narrative.defence?`<p>${D.narrative.defence}</p>`:'<p>[To be filled]</p>'}
+<p><b>4. <u>EVENTS HAPPENED DURING THE TRIAL::</u></b></p>${D.narrative.trialEvents?`<p>${D.narrative.trialEvents}</p>`:'<p>[To be filled]</p>'}
+
+<p><b>5. <u>THE EVIDENCE OF THE APPLICANTS::</u></b></p>
+<p><b><u>Oral Evidence:-</u></b></p>
+${D.appOralEv.filter(e=>e.desc).length>0?`<table><tbody>${D.appOralEv.filter(e=>e.desc).map((e,i)=>`<tr><td style="width:30px">${i+1}.</td><td>${e.desc}</td><td style="width:80px">${e.exh}</td></tr>`).join('')}</tbody></table>`:'<p>NIL</p>'}
+<p><b><u>Documentary Evidence</u></b></p>
+${D.appDocEv.filter(e=>e.desc).length>0?`<table><tbody>${D.appDocEv.filter(e=>e.desc).map((e,i)=>`<tr><td style="width:30px">${i+1}</td><td>${e.desc}</td><td style="width:80px">${e.exh}</td></tr>`).join('')}</tbody></table>`:'<p>NIL</p>'}
+
+<p><b>6. <u>THE EVIDENCE OF THE OPPONENTS ::</u></b></p>
+${D.oppDocEv.filter(e=>e.desc).length>0?`<table><tbody>${D.oppDocEv.filter(e=>e.desc).map((e,i)=>`<tr><td style="width:30px">${i+1}.</td><td>${e.desc}</td><td style="width:80px">${e.exh}</td></tr>`).join('')}</tbody></table>`:'<p><b>NIL</b></p>'}
+
+${D.narrative.closingPursis?`<p><b><u>Closing Pursis ::</u></b></p><p>${D.narrative.closingPursis}</p>`:''}
+
+<p><b>8. <u>ISSUES ::</u></b></p>
+${D.caseType==="fatal"?'<blockquote><p>1. Whether the petitioners prove that the deceased died due to rashness and negligency on the part of the driver of the vehicle involved in the accident?</p><p>2. Whether the petitioners are entitled to get compensation? If yes, what amount and from whom?</p><p>3. What order?</p></blockquote>':'<blockquote><p>1. Whether the applicant/s prove/s that the applicant sustained injuries on account of rashness or negligent driving on the part of the driver of the vehicle/s involved in the accident?</p><p>2. What amount, if any, applicant/s is/are entitled to get by way of compensation and from which of the opponents?</p><p>3. What order & decree?</p></blockquote>'}
+<p><b><u>My findings:</u></b> 1. In the Affirmative. 2. Partly Affirmative. 3. As per final order.</p>
+
+<h3><b>-: R E A S O N S ::-</b></h3>
+<p><b><u>ISSUE NO.1</u></b></p>
+<p><b>9. <u>INVOLVEMENT OF VEHICLE, NEGLIGENCY AND ${di} DUE TO THE ACCIDENT::</u></b></p>
+${negStd}
+${D.narrative.negligence?`<p><b>9.3</b> ${D.narrative.negligence}</p>`:'<p><b>9.3</b> [Case-specific negligence discussion to be filled by JO]</p>'}
+
+<p><b><u>ISSUES NO. 2</u></b></p>
+<p><b>10. <u>QUANTUM OF COMPENSATION::</u></b></p>
+<p>The Cardinal principal for awarding compensation is that it must be JUST COMPENSATION. Hon'ble Supreme Court in <b>Sarla Verma vs. Delhi Transport Corporation, (2009) 6 SCC 121</b> provided guidelines and the same is computed as under:</p>
+<p><b>10.1 <u>AGE:</u></b> The age of the ${dc} is established as <b>${D.victim.age||'__'} years</b>. Falls within age group <b>${c.ag}</b> → multiplier of <b>${c.mul}</b> (Sarla Verma, Para 42).</p>
+<p><b>10.2 <u>INCOME</u></b></p>
+${D.income.type==="itr_avg"?`<p>Income Tax Returns for ${D.income.itrYear||'[Year 1]'} and ${D.income.itr2Year||'[Year 2]'} show Rs. ${fI(D.income.itrAmt)}/- and Rs. ${fI(D.income.itr2Amt)}/- respectively. Average annual income: <b>Rs. ${fI(c.ai)}/-</b>.</p>`:''}
+${D.income.type==="itr"?`<p>As per ITR for ${D.income.itrYear||'[Year]'}, annual income: <b>Rs. ${fI(c.ai)}/-</b>.</p>`:''}
+${D.income.type==="notional"?`<p>No documentary proof of income. Notional monthly income assessed at <b>Rs. ${fI(c.mi)}/-</b>.</p>`:''}
+${D.income.type==="salary"?`<p>As per salary certificate, monthly income: <b>Rs. ${fI(c.mi)}/-</b>, annual: <b>Rs. ${fI(c.ai)}/-</b>.</p>`:''}
+<p>As per <b>National Insurance Company Limited vs. Pranay Sethi, (2017) 16 SCC 680</b>, ${c.fp}% future prospects added: Rs. ${fI(c.fpa)}/-, making total annual income <b>Rs. ${fI(c.awfp)}/-</b>.</p>
+${D.caseType==="fatal"?`<p>Deceased was <b>${D.victim.marital}</b>${D.victim.marital==="unmarried"?'. As per Sarla Verma, 1/2 deducted towards personal expenses.':'. With '+D.fatal.dependents+' dependents, '+c.df+' deducted towards personal expenses.'}</p>`:''}
+${D.caseType==="injury"?`<p>As per <b>Pappu Deo Yadav Vs. Naresh Kumar, AIR 2020 SC 4424</b>, future prospects apply in injury cases. Disability: <b>${c.dis}%</b>. Annual loss: <b>Rs. ${fI(c.ale)}/-</b>. With multiplier ${c.mul}, future loss = <b>Rs. ${fI(c.fil)}/-</b>.</p>`:''}
+
+<table><thead><tr><th>Sr.</th><th style="text-align:left">Head</th><th style="text-align:right">Amount (Rs.)</th></tr></thead><tbody>
+${D.caseType==="fatal"?`
+<tr><td style="text-align:center">1.</td><td>Monthly Income</td><td style="text-align:right">${fI(c.mi)}/-</td></tr>
+<tr><td style="text-align:center">2.</td><td>Future Prospects @ ${c.fp}%</td><td style="text-align:right">${fI(Math.round(c.fpa/12))}/-</td></tr>
+<tr style="font-weight:700"><td></td><td><b>Total Monthly Income</b></td><td style="text-align:right"><b>${fI(c.mwfp)}/-</b></td></tr>
+<tr><td style="text-align:center">3.</td><td>Annual Income (${fI(c.mwfp)} × 12)</td><td style="text-align:right">${fI(c.awfp)}/-</td></tr>
+<tr><td style="text-align:center">4.</td><td>Deduction Personal Expenses (${c.df})</td><td style="text-align:right">${fI(c.da)}/-</td></tr>
+<tr style="font-weight:700"><td></td><td><b>Net Annual Dependency</b></td><td style="text-align:right"><b>${fI(c.nd)}/-</b></td></tr>
+<tr><td style="text-align:center">5.</td><td>Multiplier</td><td style="text-align:right">× ${c.mul}</td></tr>
+<tr><td style="text-align:center">6.</td><td>Loss of Dependency (${fI(c.nd)} × ${c.mul})</td><td style="text-align:right">${fI(c.lod)}/-</td></tr>
+<tr><td style="text-align:center">7.</td><td>Loss of Estate</td><td style="text-align:right">${fI(c.le)}/-</td></tr>
+${c.spC>0?`<tr><td style="text-align:center">8.</td><td>Spousal Consortium (${c.spC} × ₹${fI(c.cpp)})</td><td style="text-align:right">${fI(c.cpp*c.spC)}/-</td></tr>`:''}
+${c.parC>0?`<tr><td style="text-align:center">${c.spC>0?'9.':'8.'}.</td><td>Parental Consortium (${c.parC} × ₹${fI(c.cpp)})</td><td style="text-align:right">${fI(c.cpp*c.parC)}/-</td></tr>`:''}
+${c.filC>0?`<tr><td style="text-align:center">${8+(c.spC>0?1:0)+(c.parC>0?1:0)}.</td><td>Filial Consortium (${c.filC} × ₹${fI(c.cpp)})</td><td style="text-align:right">${fI(c.cpp*c.filC)}/-</td></tr>`:''}
+<tr><td></td><td>Funeral Expenses</td><td style="text-align:right">${fI(c.fe)}/-</td></tr>
+${c.med>0?`<tr><td></td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`:''}
+`:`
+<tr><td style="text-align:center">1.</td><td>Future Loss of Income</td><td style="text-align:right">${fI(c.fil)}/-</td></tr>
+<tr><td style="text-align:center">2.</td><td>Pain, Shock and Sufferings</td><td style="text-align:right">${fI(c.ps)}/-</td></tr>
+<tr><td style="text-align:center">3.</td><td>Attendant, Rich Diet</td><td style="text-align:right">${fI(c.at)}/-</td></tr>
+${c.tc>0?`<tr><td style="text-align:center">4.</td><td>Transportation</td><td style="text-align:right">${fI(c.tc)}/-</td></tr>`:''}
+<tr><td style="text-align:center">${c.tc>0?'5.':'4.'}</td><td>Actual Loss of Income (${c.br} months)</td><td style="text-align:right">${fI(c.ali)}/-</td></tr>
+<tr><td style="text-align:center">${c.tc>0?'6.':'5.'}</td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>
+`}
+<tr style="font-weight:700;background:#f0f0f0"><td></td><td><b>Total Compensation</b></td><td style="text-align:right"><b>Rs. ${fI(c.tot)}/-</b></td></tr>
+</tbody></table>
+
+<p>Total loss: <b><u>Rs. ${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>
+<p><b>11. <u>LIABILITY OF OPPONENTS TO PAY COMPENSATION</u></b></p><p>[To be completed by JO]</p>
+<p><b>12. <u>ADMISSIBLE RATE OF INTEREST ::</u></b></p><p>Looking to the circumstances of the case as well bank rates for the interest, I do believe that if interest is awarded at the rate of ${D.interestRate}% it will be proper and just.</p>
+<p><b>13. <u>COURT FEES::</u></b></p><p>Court Fee to be deducted under Order 33 Rule 10 of CPC.</p>
+<p><b><u>CONCLUSION / ORDER::</u></b></p><p>In view of the forgoing discussion, I have decided Issues No.1 and 2 in affirmative. Hence, pass the following final order:-</p>
+<h3><b><u>FINAL O R D E R</u></b></h3><p><i>[Final Order to be drafted by the JO]</i></p>
+<br><br><p>Signed & Pronounced in open Court on <b>${D.court.decidedOn||'[Date]'}</b></p>
+<table style="border:none"><tbody><tr>
+<td style="border:none;padding:8px;vertical-align:top">Date: ${D.court.decidedOn}<br>Place: ${D.court.judgePlace}</td>
+<td style="border:none;padding:8px;text-align:right;vertical-align:top"><b>(${D.court.judgeName||'[JUDGE NAME]'})</b><br>${D.court.judgeDesg}<br>${D.court.place}<br>UNIQUE ID CODE NO. ${D.court.uniqueId}</td>
+</tr></tbody></table>`;
+
+return`<div class="panel-header"><h2>📝 Preview & Export</h2><p>Review judgment and download</p></div>
+<div class="export-bar"><button class="btn-export" onclick="exportDOC()">📄 Download .DOC</button><button class="btn-export sec" onclick="window.print()">🖨️ Print / PDF</button></div>
+<div class="preview-box" id="jP">${j}</div>`;}
+
+// ═══ EXPORT ═══
+function exportDOC(){const el=document.getElementById('jP');if(!el)return;
+const h=`<html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',Georgia,serif;font-size:14px;margin:50px 70px;line-height:1.8}table{border-collapse:collapse;width:100%}td,th{border:1px solid #333;padding:6px 10px;font-size:13px}h2,h3{text-align:center}b{font-weight:700}blockquote{margin:8px 40px}.hdr-tbl{width:auto!important;margin-left:auto;margin-right:0;font-size:11px}.hdr-tbl td{padding:3px 8px;border:1px solid #999;white-space:nowrap}</style></head><body>${el.innerHTML}</body></html>`;
+const b=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`MACP_${D.court.petNo||'XX'}_${D.court.year||'20XX'}_Judgment.doc`;a.click();URL.revokeObjectURL(a.href);showToast('Downloaded as .DOC');}
+
+// ═══ SAVE/LOAD ═══
+function saveDraft(){try{localStorage.setItem('mact_d',JSON.stringify(D));localStorage.setItem('mact_s',cS);localStorage.setItem('mact_dt',new Date().toLocaleString());showToast('Draft saved!');}catch(e){showToast('Error saving');}}
+function loadDraft(){try{const d=localStorage.getItem('mact_d');if(d){D=JSON.parse(d);const s=parseInt(localStorage.getItem('mact_s'))||0;document.getElementById('dN').style.display='none';setCaseType(D.caseType);goTo(s);showToast('Draft loaded!');}}catch(e){showToast('Error loading');}}
+function discardDraft(){localStorage.removeItem('mact_d');localStorage.removeItem('mact_s');localStorage.removeItem('mact_dt');document.getElementById('dN').style.display='none';showToast('Draft discarded');}
+function clearDraft(){if(confirm('Clear all data?')){localStorage.removeItem('mact_d');localStorage.removeItem('mact_s');location.reload();}}
+function checkDraft(){const d=localStorage.getItem('mact_d');if(d){const dt=localStorage.getItem('mact_dt')||'unknown';const n=document.getElementById('dN');n.querySelector('span').textContent=`📋 Saved draft from ${dt} found. Resume?`;n.style.display='flex';}}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ═══ INIT ═══
+renderSB();renderStep();checkDraft();
+</script>
+</body>
+</html>
