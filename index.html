@@ -99,7 +99,7 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:#2c2c2c;line-h
 <div class="toast" id="toast"></div>
 <script>
 let D={caseType:"fatal",
-court:{name:"IN THE MOTOR ACCIDENT CLAIM TRIBUNAL,",place:"",petNo:"00",year:"",filedOn:"",regOn:"",decidedOn:"",section:"166",claimedAmt:"",judgeName:"",judgeDesg:"Judge, Motor Accident Claims Tribunal",judgePlace:"",uniqueId:"",courtFees:"indigent"},
+court:{name:"IN THE MOTOR ACCIDENT CLAIM TRIBUNAL,",place:"",petNo:"",year:"",filedOn:"",regOn:"",decidedOn:"",section:"166",claimedAmt:"",judgeName:"",judgeDesg:"Judge, Motor Accident Claims Tribunal",judgePlace:"",uniqueId:"",courtFees:"indigent"},
 victim:{name:"",age:"",gender:"Male",occ:"",marital:"married"},
 accident:{date:"",time:"",firNo:"",firPS:"",firDate:"",firSections:"279, 337, 304(A)",vehNo:""},
 applicants:[{name:"",age:"",occ:"",relation:"",address:""}],
@@ -110,16 +110,16 @@ ooe:[],ode:[],
 s170exh:"",clPurClm:"",clPurOpp:"",
 narrative:{pc:"",defence:"",argClm:"",argOpp:"",negligence:""},
 income:{type:"notional",empType:"SELF_EMPLOYED",itrYears:[{yr:"",amt:""}],salary:"",notional:"",businessIncome:""},
-fatal:{dep:"3",spC:"0",parC:"0",filC:"0",med:"0"},
-injury:{dis:"0",br:"2",ps:"10000",at:"5000",tc:"0",med:"0"},
-ir:"7.5"};
+fatal:{dep:"",spC:"",parC:"",filC:"",med:""},
+injury:{permDis:"",disRef:"whole",funcDis:"",lec:"",br:"",ps:"",at:"",tc:"",med:"",futureMed:"",lossAmenity:"",lossMarriage:"",lossExpLife:""},
+ir:""};
 
 const MT=[{mn:0,mx:15,m:15,l:"Upto 15"},{mn:16,mx:20,m:18,l:"16 to 20"},{mn:21,mx:25,m:18,l:"21 to 25"},{mn:26,mx:30,m:17,l:"26 to 30"},{mn:31,mx:35,m:16,l:"31 to 35"},{mn:36,mx:40,m:15,l:"36 to 40"},{mn:41,mx:45,m:14,l:"41 to 45"},{mn:46,mx:50,m:13,l:"46 to 50"},{mn:51,mx:55,m:11,l:"51 to 55"},{mn:56,mx:60,m:9,l:"56 to 60"},{mn:61,mx:65,m:7,l:"61 to 65"},{mn:66,mx:200,m:5,l:"66 to 70"}];
 const gM=a=>(MT.find(x=>a>=x.mn&&a<=x.mx)||{m:5}).m;
 const gAG=a=>(MT.find(x=>a>=x.mn&&a<=x.mx)||{l:"66+"}).l;
 const gFP=(a,e)=>e==="PERMANENT"?(a<40?50:a<=50?30:a<=60?15:0):(a<40?40:a<=50?25:a<=60?10:0);
-const gPD=(ai,d,ms)=>{if(ms==="unmarried")return{f:"1/2",a:Math.round(ai/2)};d=parseInt(d)||3;return d<=2?{f:"1/3",a:Math.round(ai/3)}:d<=5?{f:"1/4",a:Math.round(ai/4)}:{f:"1/5",a:Math.round(ai/5)};};
-const gCH=yr=>{const p=Math.max(0,Math.floor(((parseInt(yr)||2025)-2017)/3));const m=1+p*0.1;return{le:Math.round(15000*m),cp:Math.round(40000*m),fe:Math.round(15000*m),pct:Math.round((m-1)*100)};};
+const gPD=(ai,d,ms)=>{if(ms==="unmarried")return{f:"1/2",a:Math.round(ai/2)};d=parseInt(d)||3;return d<=3?{f:"1/3",a:Math.round(ai/3)}:d<=6?{f:"1/4",a:Math.round(ai/4)}:{f:"1/5",a:Math.round(ai/5)};};
+const gCH=yr=>{const p=Math.max(0,Math.floor(((parseInt(yr)||2025)-2017)/3));const m=Math.pow(1.1,p);return{le:Math.round(15000*m),cp:Math.round(40000*m),fe:Math.round(15000*m),pct:Math.round((m-1)*100)};};
 const eY=s=>{if(!s)return 2025;const p=s.split(/[/.\-]/);const l=parseInt(p[p.length-1]);return l>1900?l:2025;};
 const fI=n=>Math.round(n||0).toLocaleString('en-IN');
 const nW=n=>{if(!n)return"Zero";n=Math.round(n);const o=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];const t=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];const t2=x=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?" "+o[x%10]:"");let r="",v=n;const cr=Math.floor(v/1e7);v%=1e7;const lk=Math.floor(v/1e5);v%=1e5;const th=Math.floor(v/1e3);v%=1e3;const h=Math.floor(v/100);const rm=v%100;if(cr)r+=t2(cr)+" Crore ";if(lk)r+=t2(lk)+" Lakh ";if(th)r+=t2(th)+" Thousand ";if(h)r+=o[h]+" Hundred ";if(rm)r+=t2(rm);return r.trim();};
@@ -146,11 +146,17 @@ const tC=sC+pC+fC,con=ch.cp*tC,med=parseFloat(D.fatal.med)||0;
 const tot=lod+ch.le+ch.fe+con+med;
 return{t:"fatal",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,df:pd.f,da:pd.a,nd,lod,le:ch.le,fe:ch.fe,con,cpp:ch.cp,sC,pC,fC,tC,med,cap:ch.pct,dY,tot,tw:nW(tot)};
 }else{
-const dis=parseFloat(D.injury.dis)||0,ale=Math.round(awfp*dis/100),fil=ale*mul;
+// Sarla Verma Para 7-14: Use Loss of Earning Capacity %, NOT permanent disability %
+const permDis=parseFloat(D.injury.permDis)||0; // Medical disability %
+const lec=parseFloat(D.injury.lec)||0; // Loss of earning capacity % (assessed by Tribunal)
+const ale=Math.round(awfp*lec/100),fil=ale*mul;
 const ps=parseFloat(D.injury.ps)||0,at=parseFloat(D.injury.at)||0,tc=parseFloat(D.injury.tc)||0;
-const med=parseFloat(D.injury.med)||0,br=parseInt(D.injury.br)||0,ali=Math.round(mi*br);
-const tot=fil+ps+at+tc+med+ali;
-return{t:"injury",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,dis,ale,fil,ps,at,tc,med,br,ali,tot,tw:nW(tot)};
+const med=parseFloat(D.injury.med)||0,futureMed=parseFloat(D.injury.futureMed)||0;
+const lossAmenity=parseFloat(D.injury.lossAmenity)||0,lossMarriage=parseFloat(D.injury.lossMarriage)||0;
+const lossExpLife=parseFloat(D.injury.lossExpLife)||0;
+const br=parseInt(D.injury.br)||0,ali=Math.round(mi*br);
+const tot=fil+ps+at+tc+med+futureMed+lossAmenity+lossMarriage+lossExpLife+ali;
+return{t:"injury",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,permDis,lec,ale,fil,ps,at,tc,med,futureMed,lossAmenity,lossMarriage,lossExpLife,br,ali,tot,tw:nW(tot)};
 }}
 
 const STP=["Case Details","Parties","Accident & FIR","Evidence","Arguments & Narrative","Income & FP","Compensation","Preview & Export"];
@@ -174,11 +180,11 @@ const R=[
 <div class="fc"><h3>Court Information</h3>
 ${F("Court Name (Default)","court.name",{ph:"IN THE MOTOR ACCIDENT CLAIM TRIBUNAL,"})}
 ${F("Court Place","court.place",{req:true,ph:"KACHCHH AT BHACHAU"})}
-<div class="rw r2">${F("MAC Petition No.","court.petNo",{ph:"00"})}${F("Year","court.year",{ph:"2020"})}</div></div>
+<div class="rw r2">${F("MAC Petition No.","court.petNo",{ph:""})}${F("Year","court.year",{ph:""})}</div></div>
 <div class="fc"><h3>Dates</h3><div class="rw r3">${F("Filed On","court.filedOn",{req:true,hint:"DD.MM.YYYY"})}${F("Registered On","court.regOn")}${F("Decided On","court.decidedOn",{req:true,hint:"Conventional heads on this year"})}</div>
 <div class="rw r2">${F("Section","court.section",{type:"select",options:[["166","Section 166"],["163-A","Section 163-A"]]})}${F("Claimed Amount (Rs.)","court.claimedAmt",{type:"number"})}</div></div>
 <div class="fc"><h3>Court Fees</h3>${F("Court Fees Status","court.courtFees",{type:"select",options:[["indigent","Petition filed as Indigent Person (in forma paupers)"],["paid","Court Fees Paid"]],hint:"If indigent, Court Fees deduction order will be included in judgment"})}</div>
-<div class="fc"><h3>Judge Details</h3><div class="rw r2">${F("Judge Name","court.judgeName")}${F("Designation","court.judgeDesg")}</div><div class="rw r2">${F("Place","court.judgePlace",{ph:"Bhachau"})}${F("Unique ID Code","court.uniqueId")}</div></div>`,
+<div class="fc"><h3>Judge Details</h3><div class="rw r2">${F("Judge Name","court.judgeName")}${F("Designation","court.judgeDesg")}</div><div class="rw r2">${F("Place","court.judgePlace",{ph:""})}${F("Unique ID Code","court.uniqueId")}</div></div>`,
 
 // 1: Parties
 ()=>{const vl=D.caseType==="fatal"?"Deceased":"Injured Person";
@@ -247,14 +253,36 @@ h+=`</div>`;
 
 if(D.caseType==="fatal"){
 h+=`<div class="fc"><h3>Fatal — Dependency & Consortium</h3>`;
-if(D.victim.marital==="married")h+=F("No. of Dependents","fatal.dep",{type:"number",req:true,hint:"≤2→1/3, 3-5→1/4, 6+→1/5"});
+if(D.victim.marital==="married")h+=F("No. of Dependents","fatal.dep",{type:"number",req:true,hint:"Sarla Verma Para 14: 2-3→1/3, 4-6→1/4, 7+→1/5"});
 else h+=`<div class="ib"><strong>Unmarried</strong> → 1/2 deduction automatic</div>`;
 const ch=gCH(eY(D.court.decidedOn));
 h+=`<div class="ib">Consortium: @ <strong>Rs.${fI(ch.cp)}</strong>/person (Base ₹40,000 + ${ch.pct}% appreciation, Decision Year: ${eY(D.court.decidedOn)})</div>`;
 h+=`<div class="rw r3">${F("Spousal Consortium","fatal.spC",{type:"number",hint:"0 or 1"})}${F("Parental Consortium","fatal.parC",{type:"number",hint:"Children who lost parent"})}${F("Filial Consortium","fatal.filC",{type:"number",hint:"Parents who lost child"})}</div>`;
 h+=F("Medical Expenses (Rs.)","fatal.med",{type:"number"});h+=`</div>`;
 }else{
-h+=`<div class="fc"><h3>Injury — Disability & Expenses</h3><div class="rw r2">${F("Disability (% body)","injury.dis",{type:"number",req:true})}${F("Bed Rest (months)","injury.br",{type:"number"})}</div><div class="rw r3">${F("Pain & Suffering","injury.ps",{type:"number"})}${F("Attendant & Diet","injury.at",{type:"number"})}${F("Transport","injury.tc",{type:"number"})}</div>${F("Medical Expenses","injury.med",{type:"number"})}</div>`;}
+h+=`<div class="fc"><h3>Injury — Disability Assessment (Sarla Verma Para 7-14)</h3>
+<div class="ib"><strong>Important (Raj Kumar vs Ajay Kumar, 2010):</strong> The Tribunal should NOT mechanically apply the percentage of permanent disability as the percentage of economic loss. The loss of earning capacity must be separately assessed based on the effect of disability on the claimant's actual earning capacity.</div>
+<div class="rw r3">
+${F("Permanent Disability (%) as per Medical Certificate","injury.permDis",{type:"number",req:true,hint:"As stated in disability certificate"})}
+${F("Disability w.r.t.","injury.disRef",{type:"select",options:[["whole","Whole Body"],["limb","Specific Limb"]]})}
+${F("Functional Disability (% whole body)","injury.funcDis",{type:"number",hint:"If limb-specific, convert to whole body %"})}
+</div>
+${F("Loss of Earning Capacity (%) — As assessed by Tribunal","injury.lec",{type:"number",req:true,hint:"Para 8: This may differ from disability %. Consider claimant's occupation, whether still employed, nature of work."})}
+${F("Bed Rest / Incapacity Period (months)","injury.br",{type:"number"})}
+</div>
+<div class="fc"><h3>Pecuniary Damages — Special Damages (Para 5)</h3>
+${F("(i) Medical/Treatment/Hospitalization Expenses (Rs.)","injury.med",{type:"number",hint:"Reimbursement of actuals — bills produced"})}
+${F("(iii) Future Medical Expenses (Rs.)","injury.futureMed",{type:"number",hint:"Based on specific medical evidence of need for further treatment"})}
+<div class="rw r2">
+${F("Attendant Charges & Nourishing Diet (Rs.)","injury.at",{type:"number"})}
+${F("Transportation Charges (Rs.)","injury.tc",{type:"number"})}
+</div></div>
+<div class="fc"><h3>Non-Pecuniary Damages — General Damages (Para 5)</h3>
+${F("(iv) Pain, Suffering & Trauma (Rs.)","injury.ps",{type:"number"})}
+${F("(v) Loss of Amenities of Life (Rs.)","injury.lossAmenity",{type:"number",hint:"Inability to enjoy normal amenities — consider nature of disability"})}
+${F("(v) Loss of Prospects of Marriage (Rs.)","injury.lossMarriage",{type:"number",hint:"If applicable — particularly for unmarried young claimants"})}
+${F("(vi) Loss of Expectation of Life (Rs.)","injury.lossExpLife",{type:"number",hint:"Shortening of normal longevity — only in serious cases with medical evidence"})}
+</div>`;}
 h+=`<div class="fc"><h3>Interest</h3>${F("Interest Rate (% p.a.)","ir",{type:"number",step:"0.5"})}</div>`;return h;},
 
 // 6: Compensation
@@ -262,7 +290,7 @@ h+=`<div class="fc"><h3>Interest</h3>${F("Interest Rate (% p.a.)","ir",{type:"nu
 let h=`<div class="ph"><h2>🧮 Compensation</h2></div><div class="fc"><div class="cr"><strong>Sarla Verma:</strong> Age ${c.age} → ${c.ag} → <strong>M=${c.mul}</strong> | <strong>FP:</strong> ${D.income.empType==="PERMANENT"?"Perm":"Self-Emp"} → <strong>${c.fp}%</strong>${c.t==="fatal"&&c.cap>0?' | <strong>Conv:</strong> +'+c.cap+'% (Dec.Yr '+c.dY+')':''}</div>
 <table class="cpt"><tbody>`;
 if(c.t==="fatal"){h+=`<tr class="su"><td>Monthly Income</td><td class="am">₹${fI(c.mi)}</td></tr><tr><td>FP @${c.fp}%</td><td class="am">₹${fI(Math.round(c.fpa/12))}</td></tr><tr class="hl"><td>Total Monthly</td><td class="am">₹${fI(c.mwfp)}</td></tr><tr><td>Annual (×12)</td><td class="am">₹${fI(c.awfp)}</td></tr><tr><td>Personal Exp (${c.df})</td><td class="am" style="color:var(--dan)">-₹${fI(c.da)}</td></tr><tr class="hl"><td>Net Annual Dependency</td><td class="am">₹${fI(c.nd)}</td></tr><tr><td>Multiplier</td><td class="am">×${c.mul}</td></tr><tr class="su"><td><b>Loss of Dependency</b></td><td class="am"><b>₹${fI(c.lod)}</b></td></tr><tr><td>Loss of Estate</td><td class="am">₹${fI(c.le)}</td></tr><tr><td>Spousal Con. (${c.sC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.sC)}</td></tr><tr><td>Parental Con. (${c.pC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.pC)}</td></tr><tr><td>Filial Con. (${c.fC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.fC)}</td></tr><tr><td>Funeral Exp.</td><td class="am">₹${fI(c.fe)}</td></tr>${c.med>0?`<tr><td>Medical</td><td class="am">₹${fI(c.med)}</td></tr>`:''}`;}
-else{h+=`<tr class="su"><td>Annual Income</td><td class="am">₹${fI(c.ai)}</td></tr><tr><td>FP @${c.fp}%</td><td class="am">₹${fI(c.fpa)}</td></tr><tr class="hl"><td>Annual with FP</td><td class="am">₹${fI(c.awfp)}</td></tr><tr><td>Disability ${c.dis}%</td><td class="am">₹${fI(c.ale)}/yr</td></tr><tr><td>Multiplier</td><td class="am">×${c.mul}</td></tr><tr class="su"><td><b>Future Loss</b></td><td class="am"><b>₹${fI(c.fil)}</b></td></tr><tr><td>Pain & Suffering</td><td class="am">₹${fI(c.ps)}</td></tr><tr><td>Attendant, Diet</td><td class="am">₹${fI(c.at)}</td></tr>${c.tc>0?`<tr><td>Transport</td><td class="am">₹${fI(c.tc)}</td></tr>`:''}<tr><td>Actual Loss (${c.br}m×₹${fI(c.mi)})</td><td class="am">₹${fI(c.ali)}</td></tr><tr><td>Medical</td><td class="am">₹${fI(c.med)}</td></tr>`;}
+else{h+=`<tr class="su"><td>Annual Income</td><td class="am">₹${fI(c.ai)}</td></tr><tr><td>FP @${c.fp}%</td><td class="am">₹${fI(c.fpa)}</td></tr><tr class="hl"><td>Annual with FP</td><td class="am">₹${fI(c.awfp)}</td></tr><tr><td>Perm. Disability: ${c.permDis}%, Loss of Earning Capacity: ${c.lec}%</td><td class="am">₹${fI(c.ale)}/yr</td></tr><tr><td>Multiplier</td><td class="am">×${c.mul}</td></tr><tr class="su"><td><b>Future Loss of Earnings</b></td><td class="am"><b>₹${fI(c.fil)}</b></td></tr><tr><td>Pain, Suffering & Trauma</td><td class="am">₹${fI(c.ps)}</td></tr><tr><td>Attendant, Diet</td><td class="am">₹${fI(c.at)}</td></tr>${c.tc>0?`<tr><td>Transport</td><td class="am">₹${fI(c.tc)}</td></tr>`:''}<tr><td>Actual Loss (${c.br}m×₹${fI(c.mi)})</td><td class="am">₹${fI(c.ali)}</td></tr><tr><td>Medical Expenses</td><td class="am">₹${fI(c.med)}</td></tr>${c.futureMed>0?`<tr><td>Future Medical Expenses</td><td class="am">₹${fI(c.futureMed)}</td></tr>`:''} ${c.lossAmenity>0?`<tr><td>Loss of Amenities</td><td class="am">₹${fI(c.lossAmenity)}</td></tr>`:''} ${c.lossMarriage>0?`<tr><td>Loss of Marriage Prospects</td><td class="am">₹${fI(c.lossMarriage)}</td></tr>`:''} ${c.lossExpLife>0?`<tr><td>Loss of Expectation of Life</td><td class="am">₹${fI(c.lossExpLife)}</td></tr>`:''}`;}
 h+=`<tr class="tt"><td>TOTAL</td><td class="am">₹${fI(c.tot)}</td></tr></tbody></table><div style="margin-top:8px;font-size:13px;color:var(--navy);font-style:italic">(Rupees ${c.tw} Only)</div></div>`;
 h+=`<div class="fc"><h3>Sarla Verma Table</h3><table class="rt"><thead><tr><th>Age</th><th>Multiplier</th></tr></thead><tbody>`;MT.forEach(r=>{h+=`<tr class="${c.age>=r.mn&&c.age<=r.mx?'ar':''}"><td>${r.l}</td><td>${r.m}</td></tr>`;});h+=`</tbody></table></div>`;return h;},
 
@@ -288,7 +316,7 @@ if(c.fC>0){conRows+=`<tr><td style="text-align:center">${sr}.</td><td>Filial Con
 let j=`
 <table class="ht2" style="width:auto;margin-left:auto;margin-right:0;font-size:11pt;margin-bottom:10px"><tr><td><b>Filed on:</b></td><td>${D.court.filedOn}</td></tr><tr><td><b>Registered on:</b></td><td>${D.court.regOn||D.court.filedOn}</td></tr><tr><td><b>Decided on:</b></td><td><b>${D.court.decidedOn}</b></td></tr>${(()=>{const dr=calcDur(D.court.regOn||D.court.filedOn,D.court.decidedOn);return dr?'<tr><td><b>Duration:</b></td><td><b>'+dr.y+'</b> Yrs <b>'+dr.m+'</b> Mts <b>'+dr.d+'</b> Dys</td></tr>':'';})()}</table>
 <h2><b>${D.court.name||"IN THE MOTOR ACCIDENT CLAIM TRIBUNAL,"}</b></h2><h3><b><u>${D.court.place||"[Place]"}</u></b></h3>
-<h3><b>MAC PETITION NO.${D.court.petNo||"00"}/${D.court.year||"____"}</b></h3>
+<h3><b>MAC PETITION NO.${D.court.petNo||"___"}/${D.court.year||"____"}</b></h3>
 <table><tbody><tr><td colspan="2"><b><u>Applicants:</u></b></td></tr>${D.applicants.map((a,i)=>`<tr><td style="width:35px;text-align:center">${i+1}</td><td><b>${a.name||'[Name]'}</b><br>Age: ${a.age||'__'}, Occ: ${a.occ||'__'}${a.relation?', ('+a.relation+')':''}</td></tr>`).join('')}${D.applicants[0]?.address?`<tr><td colspan="2"><b>All are Res. At</b> ${D.applicants[0].address}</td></tr>`:''}</tbody></table>
 <h3><b>VERSUS</b></h3>
 <table><tbody><tr><td colspan="2"><b><u>Opponents:</u></b></td></tr>${D.opponents.map((o,i)=>`<tr><td style="width:35px;text-align:center">${i+1}</td><td><b>${o.name||'[Name]'}</b><br>Occ: ${o.occ||'__'}${o.address?'<br>R/o. '+o.address:''}</td></tr>`).join('')}</tbody></table>
@@ -326,10 +354,10 @@ ${D.narrative.negligence?`<p><b>9.2</b> ${D.narrative.negligence}</p>`:'<p><b>9.
 <p><b>10.2 <u>INCOME</u></b></p>
 ${incD}
 <p>As per <b>National Insurance Company Limited vs. Pranay Sethi, (2017) 16 SCC 680</b>, ${c.fp}% future prospects added: Rs.${fI(c.fpa)}/-, making total annual income <b>Rs.${fI(c.awfp)}/-</b>.</p>
-${D.caseType==="fatal"?`<p>Deceased was <b>${D.victim.marital}</b>${D.victim.marital==="unmarried"?'. As per Sarla Verma, 1/2 deducted towards personal expenses.':`. With ${D.fatal.dep} dependents, ${c.df} deducted towards personal expenses.`}</p>`:`<p>As per <b>Pappu Deo Yadav Vs. Naresh Kumar, AIR 2020 SC 4424</b>, future prospects apply in injury cases. Disability: <b>${c.dis}%</b>. Annual loss: <b>Rs.${fI(c.ale)}/-</b>. With multiplier ${c.mul}, future loss = <b>Rs.${fI(c.fil)}/-</b>.</p>`}
-<table><thead><tr><th>Sr.</th><th style="text-align:left">Head</th><th style="text-align:right">Amount (Rs.)</th></tr></thead><tbody>
+${D.caseType==="fatal"?`<p>Deceased was <b>${D.victim.marital}</b>${D.victim.marital==="unmarried"?'. As per Sarla Verma, 1/2 deducted towards personal expenses.':`. With ${D.fatal.dep} dependents, ${c.df} deducted towards personal expenses.`}</p>`:`<p>As per <b>Pappu Deo Yadav Vs. Naresh Kumar, AIR 2020 SC 4424</b>, future prospects apply in injury cases resulting in permanent disablement.</p><p>As per the disability certificate, permanent physical disability is <b>${c.permDis}%</b>. However, as held by the Hon'ble Supreme Court in <b>Raj Kumar vs. Ajay Kumar & Anr., AIRONLINE 2010 SC 125</b>, the Tribunal should not mechanically apply the percentage of permanent disability as the percentage of economic loss. Considering the nature of injuries, occupation and circumstances, the loss of earning capacity is assessed at <b>${c.lec}%</b>. Annual loss of earning: <b>Rs.${fI(c.ale)}/-</b>. Applying multiplier ${c.mul}, future loss of earnings = <b>Rs.${fI(c.fil)}/-</b>.</p>`}
+<table><thead><tr><th>Sr.</th><th style="text-align:left">Head of Compensation</th><th style="text-align:right">Amount (Rs.)</th></tr></thead><tbody>
 ${D.caseType==="fatal"?`<tr><td style="text-align:center">1.</td><td>Monthly Income</td><td style="text-align:right">${fI(c.mi)}/-</td></tr><tr><td style="text-align:center">2.</td><td>Future Prospects @ ${c.fp}%</td><td style="text-align:right">${fI(Math.round(c.fpa/12))}/-</td></tr><tr style="font-weight:700"><td></td><td><b>Total Monthly Income</b></td><td style="text-align:right"><b>${fI(c.mwfp)}/-</b></td></tr><tr><td style="text-align:center">3.</td><td>Annual Income (${fI(c.mwfp)} × 12)</td><td style="text-align:right">${fI(c.awfp)}/-</td></tr><tr><td style="text-align:center">4.</td><td>Deduction (${c.df})</td><td style="text-align:right">${fI(c.da)}/-</td></tr><tr style="font-weight:700"><td></td><td><b>Net Annual Dependency</b></td><td style="text-align:right"><b>${fI(c.nd)}/-</b></td></tr><tr><td style="text-align:center">5.</td><td>Multiplier</td><td style="text-align:right">× ${c.mul}</td></tr><tr><td style="text-align:center">6.</td><td>Loss of Dependency</td><td style="text-align:right">${fI(c.lod)}/-</td></tr><tr><td style="text-align:center">7.</td><td>Loss of Estate</td><td style="text-align:right">${fI(c.le)}/-</td></tr>${conRows}<tr><td style="text-align:center">${sr}.</td><td>Funeral Expenses</td><td style="text-align:right">${fI(c.fe)}/-</td></tr>${c.med>0?`<tr><td style="text-align:center">${sr+1}.</td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`:''}`
-:`<tr><td style="text-align:center">1.</td><td>Future Loss of Income</td><td style="text-align:right">${fI(c.fil)}/-</td></tr><tr><td style="text-align:center">2.</td><td>Pain, Shock & Sufferings</td><td style="text-align:right">${fI(c.ps)}/-</td></tr><tr><td style="text-align:center">3.</td><td>Attendant, Diet</td><td style="text-align:right">${fI(c.at)}/-</td></tr>${c.tc>0?`<tr><td style="text-align:center">4.</td><td>Transport</td><td style="text-align:right">${fI(c.tc)}/-</td></tr>`:''}<tr><td style="text-align:center">${c.tc>0?'5.':'4.'}</td><td>Actual Loss (${c.br} months)</td><td style="text-align:right">${fI(c.ali)}/-</td></tr><tr><td style="text-align:center">${c.tc>0?'6.':'5.'}</td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`}
+:((()=>{let r='',n=1;r+=`<tr><td style="text-align:center">${n++}.</td><td>Future Loss of Earnings (${c.lec}% of Rs.${fI(c.awfp)} × ${c.mul})</td><td style="text-align:right">${fI(c.fil)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Pain, Suffering & Trauma</td><td style="text-align:right">${fI(c.ps)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Attendant Charges, Nourishing Diet</td><td style="text-align:right">${fI(c.at)}/-</td></tr>`;if(c.tc>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Transportation</td><td style="text-align:right">${fI(c.tc)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Actual Loss of Income (${c.br} months)</td><td style="text-align:right">${fI(c.ali)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Medical/Treatment Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`;if(c.futureMed>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Future Medical Expenses</td><td style="text-align:right">${fI(c.futureMed)}/-</td></tr>`;if(c.lossAmenity>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Amenities of Life</td><td style="text-align:right">${fI(c.lossAmenity)}/-</td></tr>`;if(c.lossMarriage>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Prospects of Marriage</td><td style="text-align:right">${fI(c.lossMarriage)}/-</td></tr>`;if(c.lossExpLife>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Expectation of Life</td><td style="text-align:right">${fI(c.lossExpLife)}/-</td></tr>`;return r;})())}
 <tr style="font-weight:700;background:#f0f0f0"><td></td><td><b>Total Compensation</b></td><td style="text-align:right"><b>Rs.${fI(c.tot)}/-</b></td></tr></tbody></table>
 <p>Total: <b><u>Rs.${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>
 <p><b>11. <u>LIABILITY OF OPPONENTS TO PAY COMPENSATION</u></b></p><p>[To be completed by JO]</p>
@@ -361,7 +389,7 @@ return`<div class="ph"><h2>📝 Preview & Export</h2></div>
 function xD(){const el=document.getElementById('jP');if(!el)return;
 const css='@page{margin:2cm 4cm}body{font-family:Times New Roman,serif;font-size:14pt;margin:0;line-height:1.5;text-align:justify}table{border-collapse:collapse;width:100%}td,th{border:1px solid #333;padding:5px 8px;font-size:12pt}h2,h3{text-align:center;font-size:14pt}b{font-weight:700}blockquote{margin:6px 2cm}.ht2{width:auto!important;margin-left:auto;margin-right:0;font-size:11pt}.ht2 td{padding:2px 6px;border:1px solid #999}p{text-align:justify;margin-bottom:6px}';
 const h='<html><head><meta charset="utf-8"><sty'+'le>'+css+'</sty'+'le></head><body>'+el.innerHTML+'</body></html>';
-const b=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`MACP_${D.court.petNo||'00'}_${D.court.year||'20XX'}_Judgment.doc`;a.click();showToast('Downloaded .DOC');}
+const b=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`MACP_${D.court.petNo||'___'}_${D.court.year||'20XX'}_Judgment.doc`;a.click();showToast('Downloaded .DOC');}
 
 function xODT(){const el=document.getElementById('jP');if(!el)return;
 // Generate Flat ODT (FODT) - native LibreOffice format, single XML file
@@ -398,7 +426,7 @@ const fodt=`<?xml version="1.0" encoding="UTF-8"?>
 </office:text></office:body></office:document>`;
 const b=new Blob([fodt],{type:'application/vnd.oasis.opendocument.text'});
 const a=document.createElement('a');a.href=URL.createObjectURL(b);
-a.download=`MACP_${D.court.petNo||'00'}_${D.court.year||'20XX'}_Judgment.fodt`;a.click();
+a.download=`MACP_${D.court.petNo||'___'}_${D.court.year||'20XX'}_Judgment.fodt`;a.click();
 showToast('Downloaded .FODT (Open in LibreOffice)');}
 
 function htmlToFodt(html){
