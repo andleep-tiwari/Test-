@@ -111,7 +111,7 @@ s170exh:"",clPurClm:"",clPurOpp:"",
 narrative:{pc:"",defence:"",argClm:"",argOpp:"",negligence:""},
 income:{type:"notional",empType:"SELF_EMPLOYED",itrYears:[{yr:"",amt:""}],salary:"",notional:"",businessIncome:""},
 fatal:{dep:"",spC:"",parC:"",filC:"",med:""},
-injury:{permDis:"",disRef:"whole",funcDis:"",lec:"",br:"",ps:"",at:"",tc:"",med:"",futureMed:"",lossAmenity:"",lossMarriage:"",lossExpLife:""},
+injury:{permDis:"",disRef:"whole",funcDis:"",lec:"",br:"",ps:"",at:"",tc:"",med:"",futureMed:"",lossAmenity:"",lossMarriage:"",lossExpLife:"",s164type:"grievous",s163aDisType:"partial",s163aGrievous:"yes"},
 ir:""};
 
 const MT=[{mn:0,mx:15,m:15,l:"Upto 15"},{mn:16,mx:20,m:18,l:"16 to 20"},{mn:21,mx:25,m:18,l:"21 to 25"},{mn:26,mx:30,m:17,l:"26 to 30"},{mn:31,mx:35,m:16,l:"31 to 35"},{mn:36,mx:40,m:15,l:"36 to 40"},{mn:41,mx:45,m:14,l:"41 to 45"},{mn:46,mx:50,m:13,l:"46 to 50"},{mn:51,mx:55,m:11,l:"51 to 55"},{mn:56,mx:60,m:9,l:"56 to 60"},{mn:61,mx:65,m:7,l:"61 to 65"},{mn:66,mx:200,m:5,l:"66 to 70"}];
@@ -125,18 +125,68 @@ const fI=n=>Math.round(n||0).toLocaleString('en-IN');
 const nW=n=>{if(!n)return"Zero";n=Math.round(n);const o=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];const t=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];const t2=x=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?" "+o[x%10]:"");let r="",v=n;const cr=Math.floor(v/1e7);v%=1e7;const lk=Math.floor(v/1e5);v%=1e5;const th=Math.floor(v/1e3);v%=1e3;const h=Math.floor(v/100);const rm=v%100;if(cr)r+=t2(cr)+" Crore ";if(lk)r+=t2(lk)+" Lakh ";if(th)r+=t2(th)+" Thousand ";if(h)r+=o[h]+" Hundred ";if(rm)r+=t2(rm);return r.trim();};
 
 
+// Second Schedule multiplier for old 163-A
+const MT163=[{mn:0,mx:15,m:15},{mn:16,mx:20,m:16},{mn:21,mx:25,m:17},{mn:26,mx:30,m:18},{mn:31,mx:35,m:17},{mn:36,mx:40,m:16},{mn:41,mx:45,m:15},{mn:46,mx:50,m:13},{mn:51,mx:55,m:11},{mn:56,mx:60,m:9},{mn:61,mx:65,m:7},{mn:66,mx:200,m:5}];
+const gM163=a=>(MT163.find(x=>a>=x.mn&&a<=x.mx)||{m:5}).m;
+// S.164 fixed amounts with 5% annual escalation from 2019
+function g164(yr,tp){const e=Math.pow(1.05,Math.max(0,(parseInt(yr)||2025)-2019));if(tp==="death")return Math.round(500000*e);if(tp==="grievous")return Math.round(250000*e);if(tp==="minor")return Math.round(25000*e);return Math.round(500000*e);}
+
 function calcDur(d1s,d2s){try{const p=s=>{const x=s.split(/[/.\-]/);return new Date(parseInt(x[2]),parseInt(x[1])-1,parseInt(x[0]));};const a=p(d1s),b=p(d2s);let yy=b.getFullYear()-a.getFullYear(),mm=b.getMonth()-a.getMonth(),dd=b.getDate()-a.getDate();if(dd<0){mm--;const prev=new Date(b.getFullYear(),b.getMonth(),0).getDate();dd+=prev;}if(mm<0){yy--;mm+=12;}return{y:yy,m:mm,d:dd};}catch(e){return null;}}
-function compute(){
-const age=parseInt(D.victim.age)||30,mul=gM(age),fp=gFP(age,D.income.empType);
-let ai=0,mi=0;
+
+function getIncome(){let ai=0,mi=0;
 if(D.income.type==="salary"){mi=parseFloat(D.income.salary)||0;ai=mi*12;}
-else if(D.income.type==="itr"){
-  const yrs=D.income.itrYears.filter(y=>parseFloat(y.amt)>0);
-  if(yrs.length===1){ai=parseFloat(yrs[0].amt)||0;}
-  else if(yrs.length>1){ai=Math.round(yrs.reduce((s,y)=>s+(parseFloat(y.amt)||0),0)/yrs.length);}
-  mi=Math.round(ai/12);
-}else if(D.income.type==="business"){ai=parseFloat(D.income.businessIncome)||0;mi=Math.round(ai/12);}
+else if(D.income.type==="itr"){const yrs=D.income.itrYears.filter(y=>parseFloat(y.amt)>0);if(yrs.length===1)ai=parseFloat(yrs[0].amt)||0;else if(yrs.length>1)ai=Math.round(yrs.reduce((s,y)=>s+(parseFloat(y.amt)||0),0)/yrs.length);mi=Math.round(ai/12);}
+else if(D.income.type==="business"){ai=parseFloat(D.income.businessIncome)||0;mi=Math.round(ai/12);}
 else{mi=parseFloat(D.income.notional)||0;ai=mi*12;}
+return{ai,mi};}
+
+function compute(){
+const sec=D.court.section||"166";
+const age=parseInt(D.victim.age)||30;
+const accYr=eY(D.accident.date);
+
+// ═══ SECTION 164 (New No-Fault — Fixed Amounts) ═══
+if(sec==="164"){
+const disP=parseFloat(D.injury.permDis)||0;
+let tot=0,label="";
+if(D.caseType==="fatal"){tot=g164(accYr,"death");label="Death — Fixed";}
+else{const it=D.injury.s164type||"grievous";
+if(it==="grievous"){tot=g164(accYr,"grievous");label="Grievous Hurt";}
+else if(it==="permanent"){tot=Math.max(50000,Math.round(g164(accYr,"death")*disP/100));label="Perm. Disability ("+disP+"%)";}
+else{tot=g164(accYr,"minor");label="Minor Injury";}}
+return{t:"s164",sec:"164",age,caseType:D.caseType,label,accYr,tot,tw:nW(tot),esc:Math.round((Math.pow(1.05,Math.max(0,accYr-2019))-1)*100)};}
+
+// ═══ SECTION 163-A (Old No-Fault — Second Schedule) ═══
+if(sec==="163A"){
+const inc=getIncome();let ai=Math.min(inc.ai,40000),mi=Math.round(ai/12);
+const mul163=gM163(age);
+if(D.caseType==="fatal"){
+const ded=Math.round(ai/3),net=ai-ded,lod=net*mul163;
+// Second Schedule general damages for fatal
+const funeral=2000,consortium=5000,lossEstate=2500;
+const med163=Math.min(parseFloat(D.fatal.med)||0,15000);
+const tot=lod+funeral+consortium+lossEstate+med163;
+return{t:"s163a_fatal",sec:"163A",age,mul:mul163,ag:gAG(age),mi,ai,ded,net,lod,funeral,consortium,lossEstate,med163,tot,tw:nW(tot)};}
+else{
+const dis=parseFloat(D.injury.permDis)||0;
+const disType=D.injury.s163aDisType||"partial";
+// Permanent Total Disability: Annual Loss of Income × Multiplier
+const totalDisAmt=ai*mul163;
+// Permanent Partial Disability: % of Total Disability amount (as per Schedule I of WC Act 1923)
+const fil=disType==="total"?totalDisAmt:Math.round(totalDisAmt*dis/100);
+// Income loss during treatment (up to 52 weeks)
+const br=Math.min(parseInt(D.injury.br)||0,12);const ali=Math.round(mi*br);
+// Non-pecuniary damages (fixed)
+const isGrievous=D.injury.s163aGrievous||"yes";
+const pain=isGrievous==="yes"?5000:1000;
+const med163=Math.min(parseFloat(D.injury.med)||0,15000);
+const tot=fil+ali+pain+med163;
+return{t:"s163a_injury",sec:"163A",age,mul:mul163,ag:gAG(age),mi,ai,dis,disType,totalDisAmt,fil,br,ali,pain,med163,tot,tw:nW(tot)};
+}}
+
+// ═══ SECTION 166 (Fault Liability — Full) ═══
+const inc=getIncome();let ai=inc.ai,mi=inc.mi;
+const mul=gM(age),fp=gFP(age,D.income.empType);
 const fpa=Math.round(ai*fp/100),awfp=ai+fpa,mwfp=Math.round(awfp/12);
 const dY=eY(D.court.decidedOn),ch=gCH(dY);
 if(D.caseType==="fatal"){
@@ -144,11 +194,9 @@ const pd=gPD(awfp,D.fatal.dep,D.victim.marital),nd=awfp-pd.a,lod=nd*mul;
 const sC=parseInt(D.fatal.spC)||0,pC=parseInt(D.fatal.parC)||0,fC=parseInt(D.fatal.filC)||0;
 const tC=sC+pC+fC,con=ch.cp*tC,med=parseFloat(D.fatal.med)||0;
 const tot=lod+ch.le+ch.fe+con+med;
-return{t:"fatal",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,df:pd.f,da:pd.a,nd,lod,le:ch.le,fe:ch.fe,con,cpp:ch.cp,sC,pC,fC,tC,med,cap:ch.pct,dY,tot,tw:nW(tot)};
+return{t:"fatal",sec:"166",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,df:pd.f,da:pd.a,nd,lod,le:ch.le,fe:ch.fe,con,cpp:ch.cp,sC,pC,fC,tC,med,cap:ch.pct,dY,tot,tw:nW(tot)};
 }else{
-// Sarla Verma Para 7-14: Use Loss of Earning Capacity %, NOT permanent disability %
-const permDis=parseFloat(D.injury.permDis)||0; // Medical disability %
-const lec=parseFloat(D.injury.lec)||0; // Loss of earning capacity % (assessed by Tribunal)
+const permDis=parseFloat(D.injury.permDis)||0,lec=parseFloat(D.injury.lec)||0;
 const ale=Math.round(awfp*lec/100),fil=ale*mul;
 const ps=parseFloat(D.injury.ps)||0,at=parseFloat(D.injury.at)||0,tc=parseFloat(D.injury.tc)||0;
 const med=parseFloat(D.injury.med)||0,futureMed=parseFloat(D.injury.futureMed)||0;
@@ -156,7 +204,7 @@ const lossAmenity=parseFloat(D.injury.lossAmenity)||0,lossMarriage=parseFloat(D.
 const lossExpLife=parseFloat(D.injury.lossExpLife)||0;
 const br=parseInt(D.injury.br)||0,ali=Math.round(mi*br);
 const tot=fil+ps+at+tc+med+futureMed+lossAmenity+lossMarriage+lossExpLife+ali;
-return{t:"injury",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,permDis,lec,ale,fil,ps,at,tc,med,futureMed,lossAmenity,lossMarriage,lossExpLife,br,ali,tot,tw:nW(tot)};
+return{t:"injury",sec:"166",age,mul,ag:gAG(age),mi,ai,fp,fpa,mwfp,awfp,permDis,lec,ale,fil,ps,at,tc,med,futureMed,lossAmenity,lossMarriage,lossExpLife,br,ali,tot,tw:nW(tot)};
 }}
 
 const STP=["Case Details","Parties","Accident & FIR","Evidence","Arguments & Narrative","Income & FP","Compensation","Preview & Export"];
@@ -182,7 +230,7 @@ ${F("Court Name (Default)","court.name",{ph:"IN THE MOTOR ACCIDENT CLAIM TRIBUNA
 ${F("Court Place","court.place",{req:true,ph:""})}
 <div class="rw r2">${F("MAC Petition No.","court.petNo",{ph:""})}${F("Year","court.year",{ph:""})}</div></div>
 <div class="fc"><h3>Dates</h3><div class="rw r3">${F("Filed On","court.filedOn",{req:true,hint:"DD.MM.YYYY"})}${F("Registered On","court.regOn")}${F("Decided On","court.decidedOn",{req:true,hint:"Conventional heads on this year"})}</div>
-<div class="rw r2">${F("Section","court.section",{type:"select",options:[["166","Section 166"],["163-A","Section 163-A"]]})}${F("Claimed Amount (Rs.)","court.claimedAmt",{type:"number"})}</div></div>
+<div class="rw r2">${F("Section","court.section",{type:"select",options:[["166","Section 166 (Fault Liability)"],["163A","Section 163-A (No Fault — Old, Pre-April 2022)"],["164","Section 164 (No Fault — New, Post-April 2022)"]]})}${F("Claimed Amount (Rs.)","court.claimedAmt",{type:"number"})}</div></div>
 <div class="fc"><h3>Court Fees</h3>${F("Court Fees Status","court.courtFees",{type:"select",options:[["indigent","Petition filed as Indigent Person (in forma paupers)"],["paid","Court Fees Paid"]],hint:"If indigent, Court Fees deduction order will be included in judgment"})}</div>
 <div class="fc"><h3>Judge Details</h3><div class="rw r2">${F("Judge Name","court.judgeName")}${F("Designation","court.judgeDesg")}</div><div class="rw r2">${F("Place","court.judgePlace",{ph:""})}${F("Unique ID Code","court.uniqueId")}</div></div>`,
 
@@ -238,7 +286,43 @@ ${F("Closing Pursis of Opponent — Ex. No.","clPurOpp",{ph:"Ex. __"})}
 ${F("Your case-specific reasoning on negligence","narrative.negligence",{type:"textarea",hint:"Only case-specific analysis. Standard legal position is auto-generated."})}</div>`,
 
 // 5: Income & FP
-()=>{let h=`<div class="ph"><h2>💰 Income & Future Prospects</h2></div>
+()=>{const sec=D.court.section||"166";
+// ═══ Section 164: No income needed — fixed amounts ═══
+if(sec==="164"){
+let h=`<div class="ph"><h2>💰 Section 164 — No Fault Liability (Fixed Compensation)</h2></div>`;
+if(D.caseType==="fatal"){
+h+=`<div class="fc"><h3>Fatal — Fixed Compensation</h3><div class="ib"><strong>Section 164:</strong> Death compensation is <strong>Rs.5,00,000/-</strong> (fixed, irrespective of income and age), with 5% annual escalation from 01.01.2019.</div></div>`;
+}else{
+h+=`<div class="fc"><h3>Injury Type under Section 164</h3>
+${F("Type of Injury","injury.s164type",{type:"select",options:[["grievous","Grievous Hurt (Rs.2,50,000 fixed)"],["permanent","Permanent Disability (Rs.5,00,000 × disability%)"],["minor","Minor Injury (Rs.25,000 fixed)"]]})}
+${D.injury.s164type==="permanent"?F("Permanent Disability (%)","injury.permDis",{type:"number",req:true,hint:"As per Schedule I of Employees' Compensation Act, 1923. Minimum Rs.50,000."}):''}
+<div class="ib">Amounts escalate at <strong>5% annually</strong> from 01.01.2019.</div></div>`;}
+h+=`<div class="fc"><h3>Interest</h3>${F("Interest Rate (% p.a.)","ir",{type:"number",step:"0.5"})}</div>`;
+return h;}
+
+// ═══ Section 163-A: Income capped at Rs.40,000 ═══
+if(sec==="163A"){
+let h=`<div class="ph"><h2>💰 Section 163-A — Structured Formula (Second Schedule)</h2></div>
+<div class="fc"><h3>Income Assessment</h3>
+<div class="ib"><strong>Note:</strong> Under Section 163-A, annual income is <strong>capped at Rs.40,000/-</strong> as per Second Schedule. No future prospects are added. Standard <strong>1/3 deduction</strong> applies for fatal cases.</div>
+${F("Income Proof Type","income.type",{type:"select",options:[["salary","Salary Slip"],["itr","IT Return (ITR)"],["business","Business Income"],["notional","Notional Income"],["noproof","No Income Proof (Notional)"]]})}`;
+if(D.income.type==="salary")h+=F("Monthly Salary (Rs.)","income.salary",{type:"number",req:true,hint:"Will be capped at Rs.40,000/- p.a."});
+else if(D.income.type==="itr"){h+=`<div class="ib">If multiple years, average taken.</div>`;D.income.itrYears.forEach((y,i)=>{h+=`<div class="rw r3" style="margin-bottom:6px"><div class="fd"><label>ITR Year ${i+1}</label><input value="${y.yr||''}" oninput="D.income.itrYears[${i}].yr=this.value" placeholder="AY" style="padding:7px 10px;border:1px solid var(--brd);border-radius:5px;font-size:13px;background:var(--inp);width:100%"></div><div class="fd"><label>Amount (Rs.)</label><input type="number" value="${y.amt||''}" oninput="D.income.itrYears[${i}].amt=this.value" style="padding:7px 10px;border:1px solid var(--brd);border-radius:5px;font-size:13px;background:var(--inp);width:100%"></div><div style="display:flex;align-items:flex-end;padding-bottom:13px">${i>0?`<button class="brm" onclick="D.income.itrYears.splice(${i},1);rS()">✕</button>`:''}</div></div>`;});h+=`<button class="ba" onclick="D.income.itrYears.push({yr:'',amt:''});rS()" style="padding:4px 12px;font-size:11px;margin-bottom:10px">+ Add ITR Year</button>`;}
+else if(D.income.type==="business")h+=F("Annual Business Income (Rs.)","income.businessIncome",{type:"number"});
+else h+=F("Notional Monthly Income (Rs.)","income.notional",{type:"number",hint:"Capped at Rs.40,000/- p.a."});
+h+=`</div>`;
+if(D.caseType==="injury"){h+=`<div class="fc"><h3>Disability & Injury Details (Second Schedule)</h3>
+${F("Permanent Disability (%)","injury.permDis",{type:"number",req:true})}
+${F("Disablement Type","injury.s163aDisType",{type:"select",options:[["total","Permanent Total Disablement"],["partial","Permanent Partial Disablement"]],hint:"Total = full annual income × multiplier; Partial = % of total"})}
+${F("Nature of Injury","injury.s163aGrievous",{type:"select",options:[["yes","Grievous Injury (Pain Rs.5,000)"],["no","Non-Grievous Injury (Pain Rs.1,000)"]]})}
+${F("Income Loss Period (months, max 12)","injury.br",{type:"number",hint:"Loss of income not exceeding 52 weeks"})}
+${F("Medical Expenses (Rs.)","injury.med",{type:"number",hint:"Actual expenses supported by bills — max Rs.15,000 one-time"})}</div>`;}
+else{h+=`<div class="fc"><h3>Fatal — Additional</h3>${F("Medical Expenses (Rs.)","fatal.med",{type:"number",hint:"Supported by bills — max Rs.15,000"})}</div>`;}
+h+=`<div class="fc"><h3>Interest</h3>${F("Interest Rate (% p.a.)","ir",{type:"number",step:"0.5"})}</div>`;
+return h;}
+
+// ═══ Section 166: Full computation ═══
+let h=`<div class="ph"><h2>💰 Income & Future Prospects</h2></div>
 <div class="fc"><h3>Income Assessment</h3><div class="rw r2">
 ${F("Income Proof Type","income.type",{type:"select",options:[["salary","Salary Slip"],["itr","IT Return (ITR)"],["business","Business Income"],["notional","Notional Income"],["noproof","No Income Proof (Notional)"]]})}
 ${F("Employment Type","income.empType",{type:"select",options:[["PERMANENT","Permanent Job (Govt/Private)"],["SELF_EMPLOYED","Self-Employed / Fixed Salary"]],hint:"Permanent=50/30/15%, Self-Employed=40/25/10%"})}</div>`;
@@ -287,6 +371,15 @@ h+=`<div class="fc"><h3>Interest</h3>${F("Interest Rate (% p.a.)","ir",{type:"nu
 
 // 6: Compensation
 ()=>{const c=compute();
+// ═══ Section 164: Simple fixed amount display ═══
+if(c.sec==="164"){return`<div class="ph"><h2>🧮 Section 164 — Fixed Compensation</h2></div><div class="fc"><div class="cr"><strong>Section 164 (No-Fault):</strong> ${c.label} | Accident Year: ${c.accYr} | Escalation: +${c.esc}% from 2019</div><table class="cpt"><tbody><tr class="tt"><td>${c.label}</td><td class="am">₹${fI(c.tot)}</td></tr></tbody></table><div style="margin-top:8px;font-size:13px;color:var(--navy);font-style:italic">(Rupees ${c.tw} Only)</div></div>`;}
+// ═══ Section 163-A: Second Schedule display with ALL heads ═══
+if(c.sec==="163A"){
+let h=`<div class="ph"><h2>🧮 Section 163-A — Second Schedule</h2></div><div class="fc"><div class="cr"><strong>Second Schedule:</strong> Age ${c.age} → Multiplier ${c.mul} | Income capped at ₹40,000 p.a. | 1/3 deduction (fatal) | No Future Prospects</div><table class="cpt"><tbody>`;
+if(c.t==="s163a_fatal"){h+=`<tr class="su"><td>Annual Income (capped)</td><td class="am">₹${fI(c.ai)}</td></tr><tr><td>Personal Expenses (1/3)</td><td class="am" style="color:var(--dan)">-₹${fI(c.ded)}</td></tr><tr class="hl"><td>Net Annual Dependency</td><td class="am">₹${fI(c.net)}</td></tr><tr><td>Second Schedule Multiplier</td><td class="am">×${c.mul}</td></tr><tr class="su"><td><b>Loss of Dependency (2/3 × AI × M)</b></td><td class="am"><b>₹${fI(c.lod)}</b></td></tr><tr><td>Funeral Expenses</td><td class="am">₹${fI(c.funeral)}</td></tr><tr><td>Loss of Consortium (Spouse)</td><td class="am">₹${fI(c.consortium)}</td></tr><tr><td>Loss of Estate</td><td class="am">₹${fI(c.lossEstate)}</td></tr>${c.med163>0?`<tr><td>Medical Expenses (max ₹15,000)</td><td class="am">₹${fI(c.med163)}</td></tr>`:''}`;}
+else{h+=`<tr class="su"><td>Annual Income (capped)</td><td class="am">₹${fI(c.ai)}</td></tr><tr><td>Multiplier (Second Schedule)</td><td class="am">×${c.mul}</td></tr><tr class="hl"><td>Permanent Total Disability Amount (AI × M)</td><td class="am">₹${fI(c.totalDisAmt)}</td></tr>${c.disType==="partial"?`<tr><td>Loss of Earning Capacity (${c.dis}% of Total)</td><td class="am">₹${fI(c.fil)}</td></tr>`:`<tr class="su"><td><b>Permanent Total Disability</b></td><td class="am"><b>₹${fI(c.fil)}</b></td></tr>`}${c.ali>0?`<tr><td>Loss of Income (${c.br} months)</td><td class="am">₹${fI(c.ali)}</td></tr>`:''}<tr><td>Pain & Suffering (${c.pain===5000?"Grievous":"Non-Grievous"})</td><td class="am">₹${fI(c.pain)}</td></tr>${c.med163>0?`<tr><td>Medical (max ₹15,000)</td><td class="am">₹${fI(c.med163)}</td></tr>`:''}`;}
+h+=`<tr class="tt"><td>TOTAL</td><td class="am">₹${fI(c.tot)}</td></tr></tbody></table><div style="margin-top:8px;font-size:13px;color:var(--navy);font-style:italic">(Rupees ${c.tw} Only)</div></div>`;return h;}
+// ═══ Section 166: Full Sarla Verma display ═══
 let h=`<div class="ph"><h2>🧮 Compensation</h2></div><div class="fc"><div class="cr"><strong>Sarla Verma:</strong> Age ${c.age} → ${c.ag} → <strong>M=${c.mul}</strong> | <strong>FP:</strong> ${D.income.empType==="PERMANENT"?"Perm":"Self-Emp"} → <strong>${c.fp}%</strong>${c.t==="fatal"&&c.cap>0?' | <strong>Conv:</strong> +'+c.cap+'% (Dec.Yr '+c.dY+')':''}</div>
 <table class="cpt"><tbody>`;
 if(c.t==="fatal"){h+=`<tr class="su"><td>Monthly Income</td><td class="am">₹${fI(c.mi)}</td></tr><tr><td>FP @${c.fp}%</td><td class="am">₹${fI(Math.round(c.fpa/12))}</td></tr><tr class="hl"><td>Total Monthly</td><td class="am">₹${fI(c.mwfp)}</td></tr><tr><td>Annual (×12)</td><td class="am">₹${fI(c.awfp)}</td></tr><tr><td>Personal Exp (${c.df})</td><td class="am" style="color:var(--dan)">-₹${fI(c.da)}</td></tr><tr class="hl"><td>Net Annual Dependency</td><td class="am">₹${fI(c.nd)}</td></tr><tr><td>Multiplier</td><td class="am">×${c.mul}</td></tr><tr class="su"><td><b>Loss of Dependency</b></td><td class="am"><b>₹${fI(c.lod)}</b></td></tr><tr><td>Loss of Estate</td><td class="am">₹${fI(c.le)}</td></tr><tr><td>Spousal Con. (${c.sC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.sC)}</td></tr><tr><td>Parental Con. (${c.pC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.pC)}</td></tr><tr><td>Filial Con. (${c.fC}×₹${fI(c.cpp)})</td><td class="am">₹${fI(c.cpp*c.fC)}</td></tr><tr><td>Funeral Exp.</td><td class="am">₹${fI(c.fe)}</td></tr>${c.med>0?`<tr><td>Medical</td><td class="am">₹${fI(c.med)}</td></tr>`:''}`;}
@@ -340,9 +433,47 @@ ${D.s170exh?`<p><b>4. <u>EVENTS HAPPENED DURING THE TRIAL::</u></b></p><p>The Op
 <p><b>7.1</b> ${D.narrative.argClm||'[Arguments of Ld. Advocate for Claimant]'}</p>
 <p><b>7.2</b> ${D.narrative.argOpp||'[Arguments of Ld. Advocate for Opponent(s)]'}</p>
 <p><b>8. <u>ISSUES ::</u></b></p>
-${D.caseType==="fatal"?'<p>1. Whether the petitioners prove that the deceased died due to rashness and negligency on the part of the driver of the vehicle involved in the accident?</p><p>2. Whether the petitioners are entitled to get compensation? If yes, what amount and from whom?</p><p>3. What order?</p>':'<p>1. Whether the applicant/s prove/s that the applicant sustained injuries on account of rashness or negligent driving on the part of the driver of the vehicle/s involved in the accident?</p><p>2. What amount, if any, applicant/s is/are entitled to get by way of compensation and from which of the opponents?</p><p>3. What order & decree?</p>'}
+${c.sec==="164"||c.sec==="163A"?
+(D.caseType==="fatal"?'<p>1. Whether the petitioners prove that the deceased died due to the accident involving the motor vehicle?</p><p>2. Whether the petitioners are entitled to compensation under Section '+c.sec+' of the Act? If yes, what amount and from whom?</p><p>3. What order?</p>':'<p>1. Whether the applicant/s prove/s that the applicant sustained injuries due to the accident involving the motor vehicle?</p><p>2. What amount, if any, applicant/s is/are entitled to get by way of compensation under Section '+c.sec+' of the Act and from which of the opponents?</p><p>3. What order & decree?</p>')
+:(D.caseType==="fatal"?'<p>1. Whether the petitioners prove that the deceased died due to rashness and negligency on the part of the driver of the vehicle involved in the accident?</p><p>2. Whether the petitioners are entitled to get compensation? If yes, what amount and from whom?</p><p>3. What order?</p>':'<p>1. Whether the applicant/s prove/s that the applicant sustained injuries on account of rashness or negligent driving on the part of the driver of the vehicle/s involved in the accident?</p><p>2. What amount, if any, applicant/s is/are entitled to get by way of compensation and from which of the opponents?</p><p>3. What order & decree?</p>')}
 <p><b><u>My findings:</u></b></p><p>1. In the Affirmative.</p><p>2. Partly Affirmative. As per final order.</p><p>3. As per final order.</p>
 <h3><b>-: R E A S O N S ::-</b></h3>
+${c.sec==="164"?`
+<p><b><u>ISSUE NO.1</u></b></p>
+<p><b>9. <u>INVOLVEMENT OF VEHICLE AND ${di} DUE TO THE ACCIDENT::</u></b></p>
+<p><b>9.1</b> This petition is filed under Section 164 of the Motor Vehicles Act, 1988 (as amended by the Motor Vehicles (Amendment) Act, 2019). Under this section, compensation is payable on a <b>no-fault liability</b> basis. The claimant is not required to prove that the death or injury was due to any wrongful act, neglect or default of the owner of the vehicle. It is sufficient to establish that the ${D.caseType==="fatal"?"death":"injury"} arose out of the use of a motor vehicle.</p>
+${D.narrative.negligence?`<p><b>9.2</b> ${D.narrative.negligence}</p>`:''}
+<p><b><u>ISSUE NO.2 — QUANTUM OF COMPENSATION::</u></b></p>
+<p>Under Section 164 of the Act, the compensation payable is a <b>fixed amount</b> as prescribed. With 5% annual escalation from 01.01.2019, for an accident in the year ${c.accYr}, the applicable amount is computed as under:</p>
+<table><thead><tr><th style="text-align:left">Head</th><th style="text-align:right">Amount (Rs.)</th></tr></thead><tbody>
+<tr style="font-weight:700;background:#f0f0f0"><td><b>${c.label}</b></td><td style="text-align:right"><b>Rs.${fI(c.tot)}/-</b></td></tr></tbody></table>
+<p>Total: <b><u>Rs.${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>`
+:c.sec==="163A"?`
+<p><b><u>ISSUE NO.1</u></b></p>
+<p><b>9. <u>INVOLVEMENT OF VEHICLE AND ${di} DUE TO THE ACCIDENT::</u></b></p>
+<p><b>9.1</b> This petition is filed under Section 163-A of the Motor Vehicles Act, 1988 which provides for payment of compensation on a <b>structured formula basis (Second Schedule)</b> on the principle of <b>no-fault liability</b>. The claimant is not required to plead or establish that the death or permanent disablement was due to any wrongful act, neglect or default of the owner of the vehicle.</p>
+${D.narrative.negligence?`<p><b>9.2</b> ${D.narrative.negligence}</p>`:''}
+<p><b><u>ISSUE NO.2 — QUANTUM OF COMPENSATION::</u></b></p>
+<p>Under Section 163-A, compensation is computed as per the structured formula in the Second Schedule. The income is capped at Rs.40,000/- per annum. No future prospects are added.${c.t==="s163a_fatal"?' Standard 1/3 deduction applies for personal expenses.':''}</p>
+${c.t==="s163a_fatal"?`<p>Age: <b>${c.age}</b> → Second Schedule Multiplier: <b>${c.mul}</b>. Annual Income (capped): <b>Rs.${fI(c.ai)}/-</b>. After 1/3 deduction: <b>Rs.${fI(c.net)}/-</b>. Loss of Dependency = Rs.${fI(c.net)} × ${c.mul} = <b>Rs.${fI(c.lod)}/-</b>.</p>`:`<p>Age: <b>${c.age}</b> → Multiplier: <b>${c.mul}</b>. Income (capped): <b>Rs.${fI(c.ai)}/-</b>. Permanent Total Disability Amount = Rs.${fI(c.ai)} × ${c.mul} = <b>Rs.${fI(c.totalDisAmt)}/-</b>.${c.disType==="partial"?` As per Schedule I of the Workmen's Compensation Act, 1923, Loss of Earning Capacity assessed at <b>${c.dis}%</b>. Partial Disability = ${c.dis}% of Rs.${fI(c.totalDisAmt)} = <b>Rs.${fI(c.fil)}/-</b>.`:''}</p>`}
+<table><thead><tr><th>Sr.</th><th style="text-align:left">Head (Second Schedule)</th><th style="text-align:right">Amount (Rs.)</th></tr></thead><tbody>
+${c.t==="s163a_fatal"?((()=>{let r='',n=1;
+r+=`<tr><td>${n++}.</td><td>Loss of Dependency (2/3 × ${fI(c.ai)} × ${c.mul})</td><td style="text-align:right">${fI(c.lod)}/-</td></tr>`;
+r+=`<tr><td>${n++}.</td><td>Funeral Expenses</td><td style="text-align:right">${fI(c.funeral)}/-</td></tr>`;
+r+=`<tr><td>${n++}.</td><td>Loss of Consortium (Spouse)</td><td style="text-align:right">${fI(c.consortium)}/-</td></tr>`;
+r+=`<tr><td>${n++}.</td><td>Loss of Estate</td><td style="text-align:right">${fI(c.lossEstate)}/-</td></tr>`;
+if(c.med163>0)r+=`<tr><td>${n++}.</td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med163)}/-</td></tr>`;
+return r;})())
+:((()=>{let r='',n=1;
+r+=`<tr><td>${n++}.</td><td>Permanent Total Disability Amount (${fI(c.ai)} × ${c.mul})</td><td style="text-align:right">${fI(c.totalDisAmt)}/-</td></tr>`;
+if(c.disType==="partial")r+=`<tr><td>${n++}.</td><td>Permanent Partial Disability (${c.dis}% of above)</td><td style="text-align:right">${fI(c.fil)}/-</td></tr>`;
+if(c.ali>0)r+=`<tr><td>${n++}.</td><td>Loss of Income (${c.br} months)</td><td style="text-align:right">${fI(c.ali)}/-</td></tr>`;
+r+=`<tr><td>${n++}.</td><td>Pain & Suffering (${c.pain===5000?"Grievous":"Non-Grievous"})</td><td style="text-align:right">${fI(c.pain)}/-</td></tr>`;
+if(c.med163>0)r+=`<tr><td>${n++}.</td><td>Medical Expenses (max Rs.15,000)</td><td style="text-align:right">${fI(c.med163)}/-</td></tr>`;
+return r;})())}
+<tr style="font-weight:700;background:#f0f0f0"><td></td><td><b>Total</b></td><td style="text-align:right"><b>Rs.${fI(c.tot)}/-</b></td></tr></tbody></table>
+<p>Total: <b><u>Rs.${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>`
+:`
 <p><b><u>ISSUE NO.1</u></b></p>
 <p><b>9. <u>INVOLVEMENT OF VEHICLE, NEGLIGENCY AND ${di} DUE TO THE ACCIDENT::</u></b></p>
 ${negP}
@@ -359,14 +490,14 @@ ${D.caseType==="fatal"?`<p>Deceased was <b>${D.victim.marital}</b>${D.victim.mar
 ${D.caseType==="fatal"?`<tr><td style="text-align:center">1.</td><td>Monthly Income</td><td style="text-align:right">${fI(c.mi)}/-</td></tr><tr><td style="text-align:center">2.</td><td>Future Prospects @ ${c.fp}%</td><td style="text-align:right">${fI(Math.round(c.fpa/12))}/-</td></tr><tr style="font-weight:700"><td></td><td><b>Total Monthly Income</b></td><td style="text-align:right"><b>${fI(c.mwfp)}/-</b></td></tr><tr><td style="text-align:center">3.</td><td>Annual Income (${fI(c.mwfp)} × 12)</td><td style="text-align:right">${fI(c.awfp)}/-</td></tr><tr><td style="text-align:center">4.</td><td>Deduction (${c.df})</td><td style="text-align:right">${fI(c.da)}/-</td></tr><tr style="font-weight:700"><td></td><td><b>Net Annual Dependency</b></td><td style="text-align:right"><b>${fI(c.nd)}/-</b></td></tr><tr><td style="text-align:center">5.</td><td>Multiplier</td><td style="text-align:right">× ${c.mul}</td></tr><tr><td style="text-align:center">6.</td><td>Loss of Dependency</td><td style="text-align:right">${fI(c.lod)}/-</td></tr><tr><td style="text-align:center">7.</td><td>Loss of Estate</td><td style="text-align:right">${fI(c.le)}/-</td></tr>${conRows}<tr><td style="text-align:center">${sr}.</td><td>Funeral Expenses</td><td style="text-align:right">${fI(c.fe)}/-</td></tr>${c.med>0?`<tr><td style="text-align:center">${sr+1}.</td><td>Medical Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`:''}`
 :((()=>{let r='',n=1;r+=`<tr><td style="text-align:center">${n++}.</td><td>Future Loss of Earnings (${c.lec}% of Rs.${fI(c.awfp)} × ${c.mul})</td><td style="text-align:right">${fI(c.fil)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Pain, Suffering & Trauma</td><td style="text-align:right">${fI(c.ps)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Attendant Charges, Nourishing Diet</td><td style="text-align:right">${fI(c.at)}/-</td></tr>`;if(c.tc>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Transportation</td><td style="text-align:right">${fI(c.tc)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Actual Loss of Income (${c.br} months)</td><td style="text-align:right">${fI(c.ali)}/-</td></tr>`;r+=`<tr><td style="text-align:center">${n++}.</td><td>Medical/Treatment Expenses</td><td style="text-align:right">${fI(c.med)}/-</td></tr>`;if(c.futureMed>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Future Medical Expenses</td><td style="text-align:right">${fI(c.futureMed)}/-</td></tr>`;if(c.lossAmenity>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Amenities of Life</td><td style="text-align:right">${fI(c.lossAmenity)}/-</td></tr>`;if(c.lossMarriage>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Prospects of Marriage</td><td style="text-align:right">${fI(c.lossMarriage)}/-</td></tr>`;if(c.lossExpLife>0)r+=`<tr><td style="text-align:center">${n++}.</td><td>Loss of Expectation of Life</td><td style="text-align:right">${fI(c.lossExpLife)}/-</td></tr>`;return r;})())}
 <tr style="font-weight:700;background:#f0f0f0"><td></td><td><b>Total Compensation</b></td><td style="text-align:right"><b>Rs.${fI(c.tot)}/-</b></td></tr></tbody></table>
-<p>Total: <b><u>Rs.${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>
+<p>Total: <b><u>Rs.${fI(c.tot)}/-</u> (Rupees ${c.tw} Only)</b></p>`}
 <p><b>11. <u>LIABILITY OF OPPONENTS TO PAY COMPENSATION</u></b></p><p>[To be completed by JO]</p>
 <p><b>12. <u>ADMISSIBLE RATE OF INTEREST ::</u></b></p><p>Looking to the circumstances of the case as well bank rates for the interest, I do believe that if interest is awarded at the rate of ${D.ir}% it will be proper and just.</p>
 ${D.court.courtFees==="indigent"?'<p><b>13. <u>COURT FEES::</u></b></p><p>The claim petition was filed by the applicant'+pl+' in forma paupers under Order 33 Rule 1 of the Civil Procedure Code and while the petitioner has succeeded, hence Court Fee is required to be deducted under Order 33 Rule 10 of the Civil Procedure Code. The office is directed to deduct applicable Courts Fees accordingly.</p>':''}
 <p><b><u>CONCLUSION / ORDER::</u></b></p>
 <p>In view of the forgoing discussion, I ............. and accordingly. Hence, pass the following final order:-</p>
 <h3><b><u>O R D E R</u></b></h3>
-<p><b>1.</b> This claim petition Under Section 166 of the Motor Vehicles Act is ...................</p>
+<p><b>1.</b> This claim petition Under Section ${D.court.section||'166'} of the Motor Vehicles Act is ...................</p>
 <p><b>2.</b> The Opponent no............. shall pay an amount of Rs. .................... with interest at the rate of ......... per annum from the date of this petition till payment or realization of the amount.</p>
 <p><b>3.</b> NFL amount, if any, paid, be deducted from the awarded amount.</p>
 <p><b>4.</b> The Opponent no.............. shall transfer the amount into the bank account(s) of the claimant(s) with intimation to the Tribunal as per the directions of Hon'ble Supreme Court of India in <b>Parminder Singh vs. Honey Goyal and Others, 2025 INSC 361.</b></p>
