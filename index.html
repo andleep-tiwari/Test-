@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MACT Judgment Template Generator — Gujarat</title>
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="author" content="Developed for MACT Gujarat">
+<meta name="copyright" content="All rights reserved. Unauthorized copying prohibited.">
+<title>MACT Judgment Generator — Gujarat</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 :root{--navy:#1a3c5e;--gold:#c8a45a;--gl:#f5ecd4;--cream:#faf8f2;--brd:#d4c8a8;--inp:#fffff5;--suc:#2d7a4f;--dan:#b22234}
@@ -107,7 +111,7 @@ opponents:[{name:"",role:"Driver",address:"",occ:"Driving"},{name:"",role:"Owner
 appearances:{aa:"",aaFor:"Ld. Adv. for the Claimant",oa:"",oaFor:"Ld. Adv. for the Opponent",ab:""},
 aoe:[{d:"",e:""}],ade:[{d:"",e:""}],
 ooe:[],ode:[],
-s170exh:"",clPurClm:"",clPurOpp:"",
+s170exh:"",clPurClm:"",clPurOpp:"",firExh:"",csExh:"",panchExh:"",
 narrative:{pc:"",defence:"",argClm:"",argOpp:"",negligence:""},
 income:{type:"notional",empType:"SELF_EMPLOYED",itrYears:[{yr:"",amt:""}],salary:"",notional:"",businessIncome:""},
 fatal:{dep:"",spC:"",parC:"",filC:"",med:""},
@@ -273,6 +277,13 @@ return`<div class="ph"><h2>📄 Evidence</h2><p>Includes Closing Pursis & Applic
 ${F("Application u/s 170 MV Act — Ex. No.","s170exh",{ph:"Ex. __"})}
 ${F("Closing Pursis of Claimant — Ex. No.","clPurClm",{ph:"Ex. __"})}
 ${F("Closing Pursis of Opponent — Ex. No.","clPurOpp",{ph:"Ex. __"})}
+</div>
+<h3>Key Police Papers (for Auto-Fill of Negligence Para)</h3>
+<div class="ib"><strong>These exhibit numbers will be used to auto-generate Para 9.2-9.6</strong> (Negligence reasoning based on FIR, Charge Sheet & Panchnama).</div>
+<div class="rw r3">
+${F("FIR — Exhibit No.","firExh",{ph:"Ex. __"})}
+${F("Charge Sheet — Exhibit No.","csExh",{ph:"Ex. __"})}
+${F("Spot Panchnama — Exhibit No.","panchExh",{ph:"Ex. __"})}
 </div></div>`;},
 
 // 4: Arguments & Narrative
@@ -282,8 +293,8 @@ ${F("Closing Pursis of Opponent — Ex. No.","clPurOpp",{ph:"Ex. __"})}
 <div class="fc"><h3>7.1 Arguments of Ld. Advocate for the Claimant</h3>${F("Arguments submitted by Ld. Advocate for the claimant","narrative.argClm",{type:"textarea",ph:"Ld. Advocate for the claimant submitted that..."})}</div>
 <div class="fc"><h3>7.2 Arguments of Ld. Advocate for the Opponent(s)</h3>${F("Arguments submitted by Ld. Advocate for the opponent(s)","narrative.argOpp",{type:"textarea",ph:"Per contra, Ld. Advocate for the opponent submitted that..."})}</div>
 <div class="fc"><h3>Discussion on Negligence — Issue No.1</h3>
-<div class="ib"><strong>Auto-included:</strong> Bimla Devi + Sunita vs RSRTC standard of proof paragraph will appear before your discussion.</div>
-${F("Your case-specific reasoning on negligence","narrative.negligence",{type:"textarea",hint:"Only case-specific analysis. Standard legal position is auto-generated."})}</div>`,
+<div class="ib"><strong>Auto-Generated (Section 166 only):</strong><br>Para 9.1 — Bimla Devi + Sunita vs RSRTC (standard of proof)<br>Para 9.2-9.6 — <strong>Auto-filled</strong> from FIR, Charge Sheet & Panchnama exhibit numbers entered in Evidence step. Includes adverse inference (Hansaben Dabgar, Pushpa Rana, Mangla Ram).<br><br>If you wish to <strong>override</strong> the auto-fill with your own reasoning, type it below. Leave blank to use auto-generated text.</div>
+${F("Custom Negligence Discussion (Optional — leave blank for auto-fill)","narrative.negligence",{type:"textarea",hint:"Leave blank to use auto-generated reasoning based on FIR, Charge Sheet & Panchnama exhibits."})}</div>`,
 
 // 5: Income & FP
 ()=>{const sec=D.court.section||"166";
@@ -477,7 +488,13 @@ return r;})())}
 <p><b><u>ISSUE NO.1</u></b></p>
 <p><b>9. <u>INVOLVEMENT OF VEHICLE, NEGLIGENCY AND ${di} DUE TO THE ACCIDENT::</u></b></p>
 ${negP}
-${D.narrative.negligence?`<p><b>9.2</b> ${D.narrative.negligence}</p>`:'<p><b>9.2</b> [Case-specific discussion by JO]</p>'}
+${D.narrative.negligence?`<p><b>9.2</b> ${D.narrative.negligence}</p>`:`
+<p><b>9.2</b> I have perused the FIR ${D.firExh?'('+D.firExh+')':'(Exh....)'} and charge-sheet ${D.csExh?'('+D.csExh+')':'(Exh....)'} which are laid against the driver of vehicle bearing registration No. ${D.accident.vehNo||'..........'}${D.accident.firSections?' under Section '+D.accident.firSections+' of the Indian Penal Code':''} and the opponents had not challenge the propriety of the said FIR and Charge Sheet before any authority and this fact reinforces the allegations in the said FIR insofar as the occurrence of the accident and the role of the opponent in causing such accident. Further the bare perusal of the panchnama of the scene of accident ${D.panchExh?'('+D.panchExh+')':'(Exh....)'} depicts that the accident caused due to the sole negligence of the opponent No.1.</p>
+<p><b>9.3</b> As noted herein above, the contents of the FIR, charge sheet and panchnama of scene of offence clearly depicts the gross rash and negligent driving of driver of the offending vehicle. As against this there is no evidence in rebuttal on behalf of the opponents to show that there was also negligence on part of the ${dc}. It is the cardinal principle of law that the party who asserts the fact that the accident occurred in a particular way, has to prove his case that the accident occurred in a particular way. Herein the present case, the claimants have proved the case which has been pleaded in the claim petition and supported by the oral deposition as well as the police papers.</p>
+<p><b>9.4</b> At this juncture, I would like to note that the insurance company has not examined the driver of the offending vehicle to lead evidence in rebuttal. Therefore, as per the decision of the Hon'ble Gujarat High Court reported in <b>2001 (2) GCD 1448 (Guj.), Ahmedabad Municipal Transport Service Vs. Hansaben Natvarlal Dabgar</b>, an adverse inference is required to be drawn against the driver and owner. Moreover, the charge-sheet is also laid against the driver of the said vehicle and in view of the ratio laid down in the case of <b>National Insurance Co. vs Pushpa Rana 2009 ACJ 287</b>, by the Hon'ble Delhi High Court wherein it was held that the filing of charge-sheet is sufficient to hold that the alleged accident was caused because of the rash and negligent driving of the driver of the offending vehicle. Further the Hon'ble Apex Court in <b>Mangla Ram v. Oriental Insurance Co. Ltd. and Ors., 2018 INSC 311</b>, had also affirmed that filing of charge-sheet prima facie points towards the complicity in driving the vehicle negligently and rashly.</p>
+<p><b>9.5</b> Considering the above referred facts and circumstances of the case and in absence of any evidence in rebuttal by the opponents to the effect that there was also negligence on part of the ${dc}, I hold that the above referred accident, dated ${D.accident.date||'..........'}, occurred because of the sole negligence of the driver of vehicle bearing registration No. ${D.accident.vehNo||'..........'}. Therefore, I decide Issue No.1 in affirmative.</p>
+<p style="background:#fff3cd;border:1px solid #ffc107;padding:8px 12px;border-radius:6px;font-size:12pt;margin:10px 0"><b>⚠ NOTE OF CAUTION:</b> <i>The above Para 9.2 to 9.5 has been auto-generated based on the exhibits entered. The Hon'ble Judicial Officer may add, delete or modify this part as per the facts and circumstances of the individual case.</i></p>
+`}
 <p><b><u>ISSUES NO. 2</u></b></p>
 <p><b>10. <u>QUANTUM OF COMPENSATION::</u></b></p>
 <p>The Cardinal principal for awarding compensation is that it must be JUST COMPENSATION. Hon'ble Supreme Court in <b>Sarla Verma vs. Delhi Transport Corporation, (2009) 6 SCC 121</b> provided guidelines and the same is computed as under:</p>
@@ -610,6 +627,23 @@ function cD(){if(confirm('Clear all data?')){localStorage.removeItem('mact4');lo
 function ckD(){if(localStorage.getItem('mact4')){const n=document.getElementById('dN');n.querySelector('span').textContent=`📋 Draft found (${localStorage.getItem('mact4d')||''}). Resume?`;n.style.display='flex';}}
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 rSB();rS();ckD();
+// ═══ SOURCE CODE PROTECTION ═══
+// Disable right-click context menu
+document.addEventListener('contextmenu',e=>e.preventDefault());
+// Disable keyboard shortcuts for view source, dev tools, save
+document.addEventListener('keydown',e=>{
+if(e.ctrlKey&&(e.key==='u'||e.key==='U'))e.preventDefault(); // Ctrl+U (view source)
+if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'||e.key==='J'||e.key==='j'||e.key==='C'||e.key==='c'))e.preventDefault(); // Ctrl+Shift+I/J/C (dev tools)
+if(e.ctrlKey&&(e.key==='s'||e.key==='S'))e.preventDefault(); // Ctrl+S (save)
+if(e.key==='F12')e.preventDefault(); // F12 (dev tools)
+});
+// Disable text selection on the page (except inputs/textareas)
+document.addEventListener('selectstart',e=>{if(!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))e.preventDefault();});
+// Disable drag
+document.addEventListener('dragstart',e=>e.preventDefault());
+// Console warning
+console.log('%c⚠ WARNING: This tool is protected. Unauthorized copying or redistribution is prohibited.','color:red;font-size:18px;font-weight:bold');
+console.log('%cDeveloped for Motor Accident Claims Tribunals, Gujarat','color:#1a3c5e;font-size:14px');
 </script>
 </body>
 </html>
