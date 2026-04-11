@@ -98,8 +98,15 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:#2c2c2c;line-h
 </style>
 </head>
 <body>
-<div class="hd"><div class="hdi"><div class="hdl"><div class="logo">⚖</div><div><h1>MACT Judgment Template Generator</h1><div class="hds">Motor Accident Claims Tribunal — Gujarat</div></div></div><div class="hdc"><button class="bct a" onclick="sCT('fatal')" id="bf">FATAL</button><button class="bct" onclick="sCT('injury')" id="bi">INJURY</button><button class="bs" onclick="sD()">💾 Save</button><button class="bs" onclick="cD()">🗑️ Clear</button></div></div></div>
+<div class="hd"><div class="hdi"><div class="hdl"><div class="logo">⚖</div><div><h1>MACT Judgment Template Generator</h1></div></div><div class="hdc"><button class="bct a" onclick="sCT('fatal')" id="bf">FATAL</button><button class="bct" onclick="sCT('injury')" id="bi">INJURY</button><button class="bs" onclick="sD()">💾 Save</button><button class="bs" onclick="cD()">🗑️ Clear</button></div></div></div>
 <div class="mn"><div class="sb"><ul class="sl" id="sL"></ul></div><div class="ct"><div class="dn2" id="dN" style="display:none"><span></span><div style="display:flex;gap:5px"><button class="bl" onclick="lD()">Resume</button><button class="bd" onclick="dD()">Discard</button></div></div><div id="sC"></div><div class="nb"><button class="bn bp" id="bP" onclick="pS()">← Previous</button><span id="sI" style="font-size:12px;color:#999"></span><button class="bn bx" id="bN" onclick="nS()">Next →</button></div></div></div>
+<div style="max-width:1100px;margin:30px auto 0;padding:20px 16px">
+<div style="background:#fff;border:2px solid #1a3c5e;border-radius:10px;padding:20px 24px;font-family:'EB Garamond',Georgia,serif;font-size:13px;line-height:1.7;color:#333">
+<p style="text-align:center;margin-bottom:10px"><strong style="color:#1a3c5e;font-size:15px">NOTE</strong></p>
+<p>This tool is a <strong>'Drafting Assistance'</strong> within the meaning of Clause 7 of the Policy on the Use of Artificial Intelligence issued by the Hon'ble High Court of Gujarat as this tool generates a template which is a <strong>starting point</strong> and <strong>not a finished judgment</strong>. It must be read, reviewed, corrected where necessary, and supplemented by the Presiding Officer before it is pronounced.</p>
+<p style="margin-top:8px">This tool computes the compensation figures in accordance with binding precedent of the Hon'ble Supreme Court of India. It does not apply judicial mind, record any finding of fact, determine negligence or liability, or draft the operative order. Every finding, every line of reasoning, and the final order is to be written by the Presiding Officer alone.</p>
+<p style="margin-top:14px;text-align:center;font-size:12px;color:#666;border-top:1px solid #ddd;padding-top:10px"><em>This tool is conceived and developed by <strong>Andleep Tiwari</strong></em></p>
+</div></div>
 <div class="toast" id="toast"></div>
 <script>
 let D={caseType:"fatal",
