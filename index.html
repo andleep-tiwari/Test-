@@ -547,85 +547,14 @@ const h='<html><head><meta charset="utf-8"><sty'+'le>'+css+'</sty'+'le></head><b
 const b=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`MACP_${D.court.petNo||'___'}_${D.court.year||'20XX'}_Judgment.doc`;a.click();showToast('Downloaded .DOC');}
 
 function xODT(){const el=document.getElementById('jP');if(!el)return;
-// Generate Flat ODT (FODT) - native LibreOffice format, single XML file
-// Page: A4, margins L/R 4cm T/B 2cm, Times New Roman 14pt, 1.5 line spacing, Justified
-const fodt=`<?xml version="1.0" encoding="UTF-8"?>
-<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">
-<office:automatic-styles>
-<style:page-layout style:name="pm1">
-<style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm" fo:margin-top="2cm" fo:margin-bottom="2cm" fo:margin-left="4cm" fo:margin-right="4cm"/>
-</style:page-layout>
-<style:style style:name="P1" style:family="paragraph">
-<style:paragraph-properties fo:text-align="justify" fo:line-height="150%"/>
-<style:text-properties fo:font-family="Times New Roman" fo:font-size="14pt"/>
-</style:style>
-<style:style style:name="PCenter" style:family="paragraph">
-<style:paragraph-properties fo:text-align="center" fo:line-height="150%"/>
-<style:text-properties fo:font-family="Times New Roman" fo:font-size="14pt" fo:font-weight="bold"/>
-</style:style>
-<style:style style:name="Bold" style:family="text">
-<style:text-properties fo:font-weight="bold"/>
-</style:style>
-<style:style style:name="Italic" style:family="text">
-<style:text-properties fo:font-style="italic"/>
-</style:style>
-<style:style style:name="BoldUnderline" style:family="text">
-<style:text-properties fo:font-weight="bold" style:text-underline-style="solid"/>
-</style:style>
-</office:automatic-styles>
-<office:master-styles>
-<style:master-page style:name="Standard" style:page-layout-name="pm1"/>
-</office:master-styles>
-<office:body><office:text>
-`+htmlToFodt(el.innerHTML)+`
-</office:text></office:body></office:document>`;
-const b=new Blob([fodt],{type:'application/vnd.oasis.opendocument.text'});
+// LibreOffice opens HTML files saved as .odt with full formatting
+// This is the most reliable browser-only approach
+const css='@page{size:A4;margin:2cm 4cm}body{font-family:Times New Roman,serif;font-size:14pt;margin:0;line-height:1.5;text-align:justify}table{border-collapse:collapse;width:100%}td,th{border:1px solid #333;padding:5px 8px;font-size:12pt}h2,h3{text-align:center;font-size:14pt}b{font-weight:700}blockquote{margin:6px 2cm}p{text-align:justify;margin-bottom:6px}.ht2{width:auto!important;margin-left:auto;margin-right:0;font-size:11pt}.ht2 td{padding:2px 6px;border:1px solid #999}';
+const h='<html xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><head><meta charset="utf-8"><meta http-equiv="content-type" content="text/html;charset=UTF-8"><sty'+'le>'+css+'</sty'+'le></head><body>'+el.innerHTML+'</body></html>';
+const b=new Blob([h],{type:'application/vnd.oasis.opendocument.text'});
 const a=document.createElement('a');a.href=URL.createObjectURL(b);
-a.download=`MACP_${D.court.petNo||'___'}_${D.court.year||'20XX'}_Judgment.fodt`;a.click();
-showToast('Downloaded .FODT (Open in LibreOffice)');}
-
-function htmlToFodt(html){
-// Convert HTML to FODT XML paragraphs
-// Simple but effective conversion
-let result='';
-// Remove tags we don't need, normalize
-const div=document.createElement('div');div.innerHTML=html;
-function processNode(node){
-if(node.nodeType===3){// text
-return escXml(node.textContent);
-}
-if(node.nodeType!==1)return'';
-const tag=node.tagName.toLowerCase();
-if(tag==='br')return'<text:line-break/>';
-if(tag==='table'){
-let t='<table:table table:name="T'+Math.random().toString(36).substr(2,4)+'">';
-const rows=node.querySelectorAll('tr');
-// count max cols
-let maxC=0;rows.forEach(r=>{let c=0;r.querySelectorAll('td,th').forEach(cell=>{c+=parseInt(cell.colSpan)||1;});if(c>maxC)maxC=c;});
-for(let i=0;i<maxC;i++)t+='<table:table-column/>';
-rows.forEach(r=>{t+='<table:table-row>';r.querySelectorAll('td,th').forEach(cell=>{
-const cs=parseInt(cell.colSpan)||1;
-t+='<table:table-cell'+(cs>1?' table:number-columns-spanned="'+cs+'"':'')+'>';
-t+='<text:p text:style-name="P1">'+processChildren(cell)+'</text:p>';
-t+='</table:table-cell>';
-if(cs>1)for(let j=1;j<cs;j++)t+='<table:covered-table-cell/>';
-});t+='</table:table-row>';});
-t+='</table:table>';return t;
-}
-if(tag==='h2'||tag==='h3')return'<text:p text:style-name="PCenter">'+processChildren(node)+'</text:p>';
-if(tag==='p'||tag==='blockquote')return'<text:p text:style-name="P1">'+processChildren(node)+'</text:p>';
-if(tag==='b'||tag==='strong')return'<text:span text:style-name="Bold">'+processChildren(node)+'</text:span>';
-if(tag==='i'||tag==='em')return'<text:span text:style-name="Italic">'+processChildren(node)+'</text:span>';
-if(tag==='u')return'<text:span text:style-name="BoldUnderline">'+processChildren(node)+'</text:span>';
-if(tag==='a')return'<text:a xlink:type="simple" xlink:href="'+escXml(node.href||'')+'">'+processChildren(node)+'</text:a>';
-if(tag==='hr')return'<text:p text:style-name="P1">─────────────────────────────────</text:p>';
-if(tag==='div'||tag==='span'||tag==='tbody'||tag==='thead'||tag==='tr'||tag==='td'||tag==='th')return processChildren(node);
-return processChildren(node);
-}
-function processChildren(node){let s='';node.childNodes.forEach(c=>{s+=processNode(c);});return s;}
-function escXml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-return processNode(div);
-}
+a.download=`MACP_${D.court.petNo||'___'}_${D.court.year||'20XX'}_Judgment.odt`;a.click();
+showToast('Downloaded .ODT — Open in LibreOffice');}
 
 function sD(){try{localStorage.setItem('mact4',JSON.stringify(D));localStorage.setItem('mact4s',cS);localStorage.setItem('mact4d',new Date().toLocaleString());showToast('Saved!');}catch(e){showToast('Error');}}
 function lD(){try{const d=localStorage.getItem('mact4');if(d){D=JSON.parse(d);cS=parseInt(localStorage.getItem('mact4s'))||0;document.getElementById('dN').style.display='none';sCT(D.caseType);gT(cS);showToast('Loaded!');}}catch(e){showToast('Error');}}
